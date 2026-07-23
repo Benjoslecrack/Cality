@@ -26,7 +26,7 @@ export function FreeWorkoutLogCard({ log, size = 'default' }: Props) {
   };
 
   return (
-    <View style={CARD_SHADOW} className={`rounded-2xl bg-surface ${isHero ? 'p-6' : 'p-4'}`}>
+    <View style={CARD_SHADOW} className={`border-2 border-border bg-surface ${isHero ? 'p-6' : 'p-4'}`}>
       <View className="flex-row items-start justify-between">
         <Text className={`flex-1 pr-3 font-display text-text ${isHero ? 'text-3xl' : 'text-lg'}`} numberOfLines={2}>
           {log.session_name}
@@ -39,7 +39,7 @@ export function FreeWorkoutLogCard({ log, size = 'default' }: Props) {
 
       <Pressable
         onPress={() => navigation.navigate('WorkoutLog', { workoutLogId: log.id })}
-        className={`mt-4 min-h-11 items-center justify-center rounded-xl bg-accent ${isHero ? 'py-4' : 'py-2.5'}`}
+        className={`mt-4 min-h-11 items-center justify-center border-2 border-accentDim bg-accent ${isHero ? 'py-4' : 'py-2.5'}`}
       >
         <Text className={`font-bodySemibold text-onAccent ${isHero ? 'text-lg' : 'text-sm'}`}>Voir le log</Text>
       </Pressable>

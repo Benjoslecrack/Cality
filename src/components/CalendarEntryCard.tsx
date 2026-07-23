@@ -79,7 +79,7 @@ export function CalendarEntryCard({ entry, size = 'default' }: Props) {
   return (
     <View
       style={CARD_SHADOW}
-      className={`rounded-2xl bg-surface ${isHero ? 'p-6' : 'p-4'}`}
+      className={`border-2 border-border bg-surface ${isHero ? 'p-6' : 'p-4'}`}
     >
       <View className="flex-row items-start justify-between">
         <View className="flex-1 pr-3">
@@ -105,7 +105,7 @@ export function CalendarEntryCard({ entry, size = 'default' }: Props) {
 
       <Pressable
         onPress={handleLog}
-        className={`mt-4 min-h-11 items-center justify-center rounded-xl bg-accent ${isHero ? 'py-4' : 'py-2.5'}`}
+        className={`mt-4 min-h-11 items-center justify-center border-2 border-accentDim bg-accent ${isHero ? 'py-4' : 'py-2.5'}`}
       >
         <Text className={`font-bodySemibold text-onAccent ${isHero ? 'text-lg' : 'text-sm'}`}>
           {existingLog ? 'Voir le log' : 'Logger cette séance'}
@@ -114,12 +114,12 @@ export function CalendarEntryCard({ entry, size = 'default' }: Props) {
 
       <View className="mt-3 flex-row flex-wrap items-center gap-2">
         {entry.status !== 'done' ? (
-          <Pressable onPress={() => setStatus('done')} className="min-h-11 justify-center rounded-lg border border-accentDim px-3">
+          <Pressable onPress={() => setStatus('done')} className="min-h-11 justify-center border-2 border-accentDim px-3">
             <Text className="font-bodyMedium text-sm text-text">Marquer fait</Text>
           </Pressable>
         ) : null}
         {entry.status !== 'skipped' ? (
-          <Pressable onPress={() => setStatus('skipped')} className="min-h-11 justify-center rounded-lg border border-accentDim px-3">
+          <Pressable onPress={() => setStatus('skipped')} className="min-h-11 justify-center border-2 border-accentDim px-3">
             <Text className="font-bodyMedium text-sm text-text">Marquer sauté</Text>
           </Pressable>
         ) : null}

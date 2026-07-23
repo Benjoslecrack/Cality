@@ -1,13 +1,24 @@
 import { useMemo } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Button } from '../components/Button';
 import { CalendarEntryCard } from '../components/CalendarEntryCard';
 import { FreeWorkoutLogCard } from '../components/FreeWorkoutLogCard';
+import { PixelHorizon } from '../components/PixelHorizon';
 import { XPBar } from '../components/XPBar';
 import { useTodayEntriesQuery } from '../hooks/useCalendarEntries';
 import { useCreateWorkoutLog, useFreeWorkoutLogsByDateQuery } from '../hooks/useWorkoutLogs';
 import { formatDayLabel, todayDateKey } from '../lib/dateUtils';
 import { COLORS } from '../theme/tokens';
+
+// Dégradé signature très assourdi : juste une ambiance de coucher de soleil
+// derrière le hero, jamais un aplat franc qui écraserait le contenu.
+const HORIZON_WASH = [
+  'rgba(255, 46, 146, 0.16)',
+  'rgba(255, 107, 53, 0.12)',
+  'rgba(0, 240, 255, 0.10)',
+  'transparent',
+] as const;
 
 type Props = {
   navigation: {
@@ -51,15 +62,24 @@ export function TodayScreen({ navigation }: Props) {
 
   return (
     <View className="flex-1 bg-background">
+      <LinearGradient
+        colors={HORIZON_WASH}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 260 }}
+      />
       <FlatList
         data={restRows}
         keyExtractor={(row) => row.id}
         contentContainerClassName="px-6 pb-6 pt-4 gap-3"
         ListHeaderComponent={
           <View className="mb-5">
-            <Text className="mb-1 font-bodyMedium text-xs uppercase tracking-widest text-textMuted">
-              Aujourd'hui
-            </Text>
+            <View className="mb-1 flex-row items-start justify-between">
+              <Text className="font-bodyMedium text-xs uppercase tracking-widest text-textMuted">
+                Aujourd'hui
+              </Text>
+              <PixelHorizon />
+            </View>
             <Text className="mb-5 font-display text-2xl capitalize text-text">{formatDayLabel(dateKey)}</Text>
 
             {heroRow ? (
