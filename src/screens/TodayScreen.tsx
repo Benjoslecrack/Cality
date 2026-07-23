@@ -3,7 +3,7 @@ import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { Button } from '../components/Button';
 import { CalendarEntryCard } from '../components/CalendarEntryCard';
 import { FreeWorkoutLogCard } from '../components/FreeWorkoutLogCard';
-import { SteelBar } from '../components/SteelBar';
+import { XPBar } from '../components/XPBar';
 import { useTodayEntriesQuery } from '../hooks/useCalendarEntries';
 import { useCreateWorkoutLog, useFreeWorkoutLogsByDateQuery } from '../hooks/useWorkoutLogs';
 import { formatDayLabel, todayDateKey } from '../lib/dateUtils';
@@ -44,7 +44,7 @@ export function TodayScreen({ navigation }: Props) {
   if (isLoadingEntries || isLoadingFreeLogs) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -71,7 +71,7 @@ export function TodayScreen({ navigation }: Props) {
                 )}
                 {restRows.length > 0 ? (
                   <View className="mb-1 mt-6">
-                    <SteelBar />
+                    <XPBar />
                     <Text className="mb-3 mt-4 font-bodyMedium text-sm text-textMuted">Aussi aujourd'hui</Text>
                   </View>
                 ) : null}
@@ -80,7 +80,7 @@ export function TodayScreen({ navigation }: Props) {
               <View className="items-start rounded-2xl bg-surface p-6">
                 <Text className="mb-4 font-display text-2xl text-text">Aucune séance planifiée</Text>
                 <View className="mb-5 w-full">
-                  <SteelBar />
+                  <XPBar />
                 </View>
                 <View className="w-full gap-3">
                   <Button label="Ajouter une séance" onPress={() => navigation.navigate('SessionPicker', { dateKey })} />

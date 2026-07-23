@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { COLORS } from '../theme/tokens';
 import type { SessionExerciseInput } from '../hooks/useSessionExercises';
 import { ProgramsListScreen } from '../screens/programs/ProgramsListScreen';
 import { ProgramFormScreen } from '../screens/programs/ProgramFormScreen';
@@ -28,10 +29,10 @@ export function ProgramsStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#0B0D10' },
-        headerTintColor: '#F5F6F7',
+        headerStyle: { backgroundColor: COLORS.bgNight },
+        headerTintColor: COLORS.textPrimary,
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: '#0B0D10' },
+        contentStyle: { backgroundColor: COLORS.bgNight },
       }}
     >
       <Stack.Screen name="ProgramsList" component={ProgramsListScreen} options={{ title: 'Programmes' }} />

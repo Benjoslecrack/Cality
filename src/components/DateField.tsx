@@ -52,7 +52,7 @@ export function DateField({ label, dateKey, onChange, maximumDate = new Date() }
             display="inline"
             maximumDate={maximumDate}
             themeVariant="dark"
-            accentColor={COLORS.accent}
+            accentColor={COLORS.neonMagenta}
             onChange={(event, selected) => {
               if (event.type === 'set' && selected) onChange(toDateKey(selected));
             }}

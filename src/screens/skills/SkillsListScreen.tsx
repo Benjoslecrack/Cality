@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RankBadge } from '../../components/RankBadge';
 import { SimpleBarChart } from '../../components/SimpleBarChart';
-import { SteelBar } from '../../components/SteelBar';
+import { XPBar } from '../../components/XPBar';
 import { useAllExerciseLogsQuery } from '../../hooks/useProgressHistory';
 import {
   useSkillCatalogQuery,
@@ -50,7 +50,7 @@ export function SkillsListScreen({ navigation }: Props) {
   if (loadingCatalog || loadingSelection) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -63,7 +63,7 @@ export function SkillsListScreen({ navigation }: Props) {
         className="mb-1 flex-row items-center justify-between rounded-2xl bg-surface p-4"
       >
         <View className="flex-row items-center gap-3">
-          <Ionicons name="images-outline" size={20} color={COLORS.accent} />
+          <Ionicons name="images-outline" size={20} color={COLORS.neonCyan} />
           <Text className="font-bodySemibold text-base text-text">Photos de progression</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
@@ -75,7 +75,7 @@ export function SkillsListScreen({ navigation }: Props) {
         className="mb-2 flex-row items-center justify-between rounded-2xl bg-surface p-4"
       >
         <View className="flex-row items-center gap-3">
-          <Ionicons name="options-outline" size={20} color={COLORS.accent} />
+          <Ionicons name="options-outline" size={20} color={COLORS.neonCyan} />
           <Text className="font-bodySemibold text-base text-text">Sélectionner mes skills</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
@@ -143,7 +143,7 @@ function SkillCard({
       <Text className="mb-2 font-bodySemibold text-base text-text">{skill.name}</Text>
       <RankBadge rank={highest?.rank ?? null} subLevel={highest?.subLevel} />
       <View className="mt-3">
-        <SteelBar
+        <XPBar
           progress={progress}
           fillColors={next ? [COLORS.textMuted, RANK_COLORS[next.rank]] : [RANK_COLORS.master, RANK_COLORS.master]}
         />

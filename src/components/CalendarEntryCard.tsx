@@ -8,13 +8,13 @@ import {
   useDeleteWorkoutLog,
   useWorkoutLogByCalendarEntryQuery,
 } from '../hooks/useWorkoutLogs';
-import { SteelBar } from './SteelBar';
+import { XPBar } from './XPBar';
 import { CARD_SHADOW, COLORS } from '../theme/tokens';
 import type { CalendarStatus } from '../types/database';
 
 const STATUS_META: Record<CalendarStatus, { label: string; icon: keyof typeof Ionicons.glyphMap; iconColor: string } | null> = {
   planned: null, // état par défaut, pas besoin de le signaler
-  done: { label: 'Faite', icon: 'checkmark-circle', iconColor: COLORS.accent },
+  done: { label: 'Faite', icon: 'checkmark-circle', iconColor: COLORS.neonCyan },
   skipped: { label: 'Sautée', icon: 'play-skip-forward-circle-outline', iconColor: COLORS.textMuted },
 };
 
@@ -101,7 +101,7 @@ export function CalendarEntryCard({ entry, size = 'default' }: Props) {
         ) : null}
       </View>
 
-      {isHero ? <View className="my-4"><SteelBar height={4} /></View> : null}
+      {isHero ? <View className="my-4"><XPBar height={4} /></View> : null}
 
       <Pressable
         onPress={handleLog}

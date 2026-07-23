@@ -6,6 +6,7 @@ import { useCalendarEntriesRangeQuery } from '../../hooks/useCalendarEntries';
 import { useFreeWorkoutLogsRangeQuery } from '../../hooks/useWorkoutLogs';
 import { addMonths, getMonthGrid, isSameDay, monthLabel, toDateKey, weekdayLabels } from '../../lib/dateUtils';
 import type { CalendarStackParamList } from '../../navigation/CalendarStack';
+import { COLORS } from '../../theme/tokens';
 
 type Props = NativeStackScreenProps<CalendarStackParamList, 'CalendarMonth'>;
 
@@ -34,13 +35,13 @@ export function CalendarMonthScreen({ navigation }: Props) {
     <View className="flex-1 bg-background px-4 pt-4">
       <View className="mb-4 flex-row items-center justify-between px-2">
         <Pressable onPress={() => setVisibleMonth((month) => addMonths(month, -1))} hitSlop={8}>
-          <Ionicons name="chevron-back" size={24} color="#F5F6F7" />
+          <Ionicons name="chevron-back" size={24} color={COLORS.textPrimary} />
         </Pressable>
         <Pressable onPress={() => setVisibleMonth(new Date())}>
           <Text className="text-lg font-semibold capitalize text-text">{monthLabel(visibleMonth)}</Text>
         </Pressable>
         <Pressable onPress={() => setVisibleMonth((month) => addMonths(month, 1))} hitSlop={8}>
-          <Ionicons name="chevron-forward" size={24} color="#F5F6F7" />
+          <Ionicons name="chevron-forward" size={24} color={COLORS.textPrimary} />
         </Pressable>
       </View>
 

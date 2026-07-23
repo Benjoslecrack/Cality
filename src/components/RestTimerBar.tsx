@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { useRestTimer } from '../contexts/RestTimerContext';
 import { CARD_SHADOW } from '../theme/tokens';
-import { SteelBar } from './SteelBar';
+import { XPBar } from './XPBar';
 
 function formatClock(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -37,7 +37,7 @@ export function RestTimerBar() {
             <Text className="font-mono text-2xl text-text">{formatClock(remainingSeconds)}</Text>
           </View>
           <View className="mb-3">
-            <SteelBar progress={progress} />
+            <XPBar progress={progress} />
           </View>
           <View className="flex-row items-center gap-2">
             <Pressable onPress={() => addTime(-15)} className="min-h-11 flex-1 items-center justify-center rounded-lg border border-accentDim">

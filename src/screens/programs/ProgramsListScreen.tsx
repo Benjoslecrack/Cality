@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useDeleteProgram, useDuplicateProgram, useProgramsQuery } from '../../hooks/usePrograms';
 import type { ProgramsStackParamList } from '../../navigation/ProgramsStack';
+import { COLORS } from '../../theme/tokens';
 
 type Props = NativeStackScreenProps<ProgramsStackParamList, 'ProgramsList'>;
 
@@ -16,7 +17,7 @@ export function ProgramsListScreen({ navigation }: Props) {
     navigation.setOptions({
       headerRight: () => (
         <Pressable onPress={() => navigation.navigate('ProgramForm', {})} hitSlop={8}>
-          <Ionicons name="add" size={26} color="#F5F6F7" />
+          <Ionicons name="add" size={26} color={COLORS.textPrimary} />
         </Pressable>
       ),
     });
@@ -50,7 +51,7 @@ export function ProgramsListScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -80,7 +81,7 @@ export function ProgramsListScreen({ navigation }: Props) {
               <View className="flex-row items-center justify-between">
                 <Text className="text-lg font-semibold text-text">{item.name}</Text>
                 <Pressable onPress={() => showActions(item)} hitSlop={8}>
-                  <Ionicons name="ellipsis-horizontal" size={20} color="#9AA1AA" />
+                  <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.textMuted} />
                 </Pressable>
               </View>
               {item.description ? (

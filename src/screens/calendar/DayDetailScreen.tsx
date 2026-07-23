@@ -8,6 +8,7 @@ import { useDayEntriesQuery } from '../../hooks/useCalendarEntries';
 import { useFreeWorkoutLogsByDateQuery } from '../../hooks/useWorkoutLogs';
 import { formatDayLabel } from '../../lib/dateUtils';
 import type { CalendarStackParamList } from '../../navigation/CalendarStack';
+import { COLORS } from '../../theme/tokens';
 
 type Props = NativeStackScreenProps<CalendarStackParamList, 'DayDetail'>;
 
@@ -25,7 +26,7 @@ export function DayDetailScreen({ navigation, route }: Props) {
       title: formatDayLabel(dateKey),
       headerRight: () => (
         <Pressable onPress={() => navigation.navigate('SessionPicker', { dateKey })} hitSlop={8}>
-          <Ionicons name="add" size={26} color="#F5F6F7" />
+          <Ionicons name="add" size={26} color={COLORS.textPrimary} />
         </Pressable>
       ),
     });
@@ -40,7 +41,7 @@ export function DayDetailScreen({ navigation, route }: Props) {
   if (isLoadingEntries || isLoadingFreeLogs) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }

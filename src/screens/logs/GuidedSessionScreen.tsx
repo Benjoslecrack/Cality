@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Text, View, Pressable, ScrollView } from 'react-native';
 import { Button } from '../../components/Button';
-import { SteelBar } from '../../components/SteelBar';
+import { XPBar } from '../../components/XPBar';
 import { Stepper } from '../../components/Stepper';
 import { TextField } from '../../components/TextField';
 import { useRestTimer } from '../../contexts/RestTimerContext';
@@ -103,7 +103,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
   if (isLoadingLog || isLoadingPlan || isLoadingLogs || stepIndex === null) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -249,7 +249,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
             {wasRecord ? (
               <View className="mb-4">
                 <Text className="mb-1.5 font-bodySemibold text-sm text-accent">Nouveau record</Text>
-                <SteelBar progress={1} justRecorded />
+                <XPBar progress={1} justRecorded />
               </View>
             ) : null}
             {tierFlash ? (
@@ -257,7 +257,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
                 <Text className="mb-1.5 font-bodySemibold text-sm" style={{ color: tierFlash.color }}>
                   {tierFlash.label}
                 </Text>
-                <SteelBar progress={1} justRanked={tierFlash.isRankUp} fillColors={[COLORS.textMuted, tierFlash.color]} />
+                <XPBar progress={1} justRanked={tierFlash.isRankUp} fillColors={[COLORS.textMuted, tierFlash.color]} />
               </View>
             ) : null}
             {!wasRecord && !tierFlash ? <Text className="mb-4 font-body text-textMuted">Série enregistrée.</Text> : null}

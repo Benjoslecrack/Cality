@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
-import { SteelBar } from '../../components/SteelBar';
+import { XPBar } from '../../components/XPBar';
 import { Stepper } from '../../components/Stepper';
 import { TextField } from '../../components/TextField';
 import { useRestTimer } from '../../contexts/RestTimerContext';
@@ -196,7 +196,7 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
       {showRecordFlash ? (
         <View className="mt-3">
           <Text className="mb-1.5 font-bodySemibold text-sm text-accent">Nouveau record</Text>
-          <SteelBar progress={1} justRecorded />
+          <XPBar progress={1} justRecorded />
         </View>
       ) : null}
 
@@ -205,7 +205,7 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
           <Text className="mb-1.5 font-bodySemibold text-sm" style={{ color: tierFlash.color }}>
             {tierFlash.label}
           </Text>
-          <SteelBar progress={1} justRanked={tierFlash.isRankUp} fillColors={[COLORS.textMuted, tierFlash.color]} />
+          <XPBar progress={1} justRanked={tierFlash.isRankUp} fillColors={[COLORS.textMuted, tierFlash.color]} />
         </View>
       ) : null}
     </View>

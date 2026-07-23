@@ -8,16 +8,12 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import {
-  BarlowCondensed_500Medium,
-  BarlowCondensed_600SemiBold,
-  BarlowCondensed_700Bold,
-} from '@expo-google-fonts/barlow-condensed';
+  PixelifySans_400Regular,
+  PixelifySans_500Medium,
+  PixelifySans_600SemiBold,
+  PixelifySans_700Bold,
+} from '@expo-google-fonts/pixelify-sans';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
-import {
-  JetBrainsMono_400Regular,
-  JetBrainsMono_500Medium,
-  JetBrainsMono_700Bold,
-} from '@expo-google-fonts/jetbrains-mono';
 import { AuthProvider } from './src/contexts/AuthContext';
 import { RestTimerProvider } from './src/contexts/RestTimerContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -28,15 +24,13 @@ SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    BarlowCondensed_500Medium,
-    BarlowCondensed_600SemiBold,
-    BarlowCondensed_700Bold,
+    PixelifySans_400Regular,
+    PixelifySans_500Medium,
+    PixelifySans_600SemiBold,
+    PixelifySans_700Bold,
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
-    JetBrainsMono_400Regular,
-    JetBrainsMono_500Medium,
-    JetBrainsMono_700Bold,
   });
 
   const onLayoutRootView = useCallback(async () => {
@@ -48,7 +42,7 @@ export default function App() {
   }, [onLayoutRootView]);
 
   if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: COLORS.bgBase }} />;
+    return <View style={{ flex: 1, backgroundColor: COLORS.bgNight }} />;
   }
 
   return (

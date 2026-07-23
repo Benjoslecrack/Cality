@@ -6,6 +6,7 @@ import { useDeleteSessionExercise, useSessionExercisesQuery } from '../../hooks/
 import { useSkillCatalogQuery } from '../../hooks/useSkillRanks';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget } from '../../lib/exerciseFormat';
 import type { ProgramsStackParamList } from '../../navigation/ProgramsStack';
+import { COLORS } from '../../theme/tokens';
 
 type Props = NativeStackScreenProps<ProgramsStackParamList, 'SessionEditor'>;
 
@@ -20,7 +21,7 @@ export function SessionEditorScreen({ navigation, route }: Props) {
     navigation.setOptions({
       headerRight: () => (
         <Pressable onPress={() => navigation.navigate('ExerciseForm', { programSessionId })} hitSlop={8}>
-          <Ionicons name="add" size={26} color="#F5F6F7" />
+          <Ionicons name="add" size={26} color={COLORS.textPrimary} />
         </Pressable>
       ),
     });
@@ -68,7 +69,7 @@ export function SessionEditorScreen({ navigation, route }: Props) {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }

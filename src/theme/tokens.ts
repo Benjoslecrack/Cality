@@ -3,34 +3,43 @@
 // Les valeurs de COLORS doivent rester identiques à celles de tailwind.config.js
 // (dupliquées volontairement : tailwind.config.js est chargé en CommonJS pur par
 // l'outillage Metro/Tailwind, indépendamment de ce module TypeScript).
+//
+// Identité pixel art 16-bit / synthwave Miami Vice : nuit violette profonde,
+// horizon néon magenta → orange → cyan.
 
 export const COLORS = {
-  bgBase: '#14171A',
-  bgSurface: '#1E2226',
-  textPrimary: '#EDEDE6',
-  textMuted: '#8A9198',
-  accent: '#FF5A1F',
-  accentDim: '#7A3418',
-  // Texte porté PAR un fond accent plein (bouton CTA, badge rempli) : le blanc
-  // ne passe pas le contraste AA en texte courant sur #FF5A1F (~3.1:1). Le
-  // charbon de fond, lui, passe large (~5.8:1) — et le duo orange/charbon
-  // évoque directement la signalétique chantier (barres, palettes).
-  onAccent: '#14171A',
+  bgNight: '#17092B',
+  bgSurface: '#23103F',
+  sunsetOrange: '#FF6B35',
+  neonMagenta: '#FF2E92',
+  neonCyan: '#00F0FF',
+  // Magenta assourdi : remplissages/pistes secondaires (ex. piste d'un
+  // interrupteur actif, embout de dégradé), jamais un ton inventé à part.
+  accentDim: '#7A1749',
+  textPrimary: '#FDF6EC',
+  textMuted: '#9C8CC2',
+  // Texte porté PAR un fond accent plein (bouton CTA, badge rempli) : le fond
+  // nuit passe large le contraste AA sur le magenta et le cyan, contrairement
+  // au texte primaire clair qui n'y passe pas en texte courant.
+  onAccent: '#17092B',
 } as const;
 
+// Dégradé signature : coucher de soleil synthwave, à utiliser avec parcimonie
+// (fond de hero, écran de passage de rang) — jamais en fond générique.
+export const GRADIENT_SUNSET = [COLORS.neonMagenta, COLORS.sunsetOrange, COLORS.neonCyan] as const;
+
 export const FONT_FAMILY = {
-  // Display : titres, libellés de section, hero — carrure condensée.
-  displayRegular: 'BarlowCondensed_500Medium',
-  displaySemibold: 'BarlowCondensed_600SemiBold',
-  displayBold: 'BarlowCondensed_700Bold',
-  // Corps de texte : lisible, neutre.
+  // Pixel : titres, libellés de section, hero, records, chiffres clés — c'est
+  // là que l'identité pixel art doit être la plus visible.
+  pixelRegular: 'PixelifySans_400Regular',
+  pixelMedium: 'PixelifySans_500Medium',
+  pixelSemibold: 'PixelifySans_600SemiBold',
+  pixelBold: 'PixelifySans_700Bold',
+  // Corps de texte : lisible, neutre — descriptions, instructions, usage
+  // rapide entre deux séries. Une police pixel intégrale nuirait à la lecture.
   bodyRegular: 'Inter_400Regular',
   bodyMedium: 'Inter_500Medium',
   bodySemibold: 'Inter_600SemiBold',
-  // Données chiffrées : charges, reps, temps de maintien, chrono.
-  monoRegular: 'JetBrainsMono_400Regular',
-  monoMedium: 'JetBrainsMono_500Medium',
-  monoBold: 'JetBrainsMono_700Bold',
 } as const;
 
 // Rayons de coin utilisés de façon cohérente dans toute l'app.
@@ -43,12 +52,12 @@ export const RADIUS = {
 // Zone tactile minimale (WCAG 2.5.5 / Apple HIG) pour tout élément pressable.
 export const MIN_TOUCH_TARGET = 44;
 
-// Élévation des cartes : un flou doux plutôt qu'un filet de contour — les
-// surfaces se distinguent par la lumière, pas par une ligne (béton/acier).
+// Élévation des cartes : ombre nette plutôt qu'un flou doux, façon bordure
+// d'inventaire pixel art (contour net + ombre portée courte).
 export const CARD_SHADOW = {
   shadowColor: '#000000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.35,
-  shadowRadius: 10,
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.5,
+  shadowRadius: 0,
   elevation: 4,
 } as const;

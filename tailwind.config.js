@@ -2,27 +2,23 @@
 // Palette — doit rester identique à src/theme/tokens.ts (voir commentaire
 // là-bas : les deux fichiers ne peuvent pas s'importer l'un l'autre car
 // celui-ci est chargé en CommonJS pur par l'outillage Tailwind/Metro).
+//
+// Identité pixel art 16-bit / synthwave Miami Vice.
 const COLORS = {
-  background: '#14171A', // bg-base
-  surface: '#1E2226', // bg-surface
-  text: '#EDEDE6', // text-primary
-  textMuted: '#8A9198', // text-muted
-  accent: '#FF5A1F',
-  accentDim: '#7A3418',
-  onAccent: '#14171A', // texte sur fond accent plein (contraste AA ~5.8:1 vs ~3.1:1 en blanc)
-};
-
-// Ponts temporaires vers l'ancienne palette générique, le temps de refondre
-// chaque écran un par un (cf. demande de refonte progressive). Objectif :
-// ne pas casser visuellement les écrans pas encore migrés. À supprimer une
-// fois tous les écrans passés sur COLORS ci-dessus.
-const LEGACY_BRIDGE_COLORS = {
-  primary: COLORS.accent,
-  primaryMuted: COLORS.accentDim,
-  surfaceAlt: '#262B30',
-  border: 'rgba(138, 145, 152, 0.25)', // text-muted à faible opacité, pas une teinte inventée
-  success: COLORS.accent,
-  warning: COLORS.textMuted,
+  background: '#17092B', // bg-night
+  surface: '#23103F', // bg-surface
+  text: '#FDF6EC', // text-primary
+  textMuted: '#9C8CC2', // text-muted (lavande grisée)
+  accent: '#FF2E92', // neon-magenta — CTA, records, éléments actifs
+  accentDim: '#7A1749', // magenta assourdi — remplissages/bordures secondaires
+  accentCyan: '#00F0FF', // neon-cyan — progression, navigation, liens
+  sunset: '#FF6B35', // horizon, dégradé signature
+  onAccent: '#17092B', // texte sur fond accent plein
+  // Noms génériques utilisés par plusieurs écrans pour l'état "actif/sélectionné"
+  // et les bordures de carte — équivalents directs de accent/accentDim.
+  primary: '#FF2E92',
+  primaryMuted: '#7A1749',
+  border: 'rgba(156, 140, 194, 0.25)', // text-muted à faible opacité
 };
 
 module.exports = {
@@ -30,16 +26,16 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
-      colors: { ...COLORS, ...LEGACY_BRIDGE_COLORS },
+      colors: COLORS,
       fontFamily: {
-        display: ['BarlowCondensed_600SemiBold'],
-        displayBold: ['BarlowCondensed_700Bold'],
+        display: ['PixelifySans_600SemiBold'],
+        displayBold: ['PixelifySans_700Bold'],
         body: ['Inter_400Regular'],
         bodyMedium: ['Inter_500Medium'],
         bodySemibold: ['Inter_600SemiBold'],
-        mono: ['JetBrainsMono_400Regular'],
-        monoMedium: ['JetBrainsMono_500Medium'],
-        monoBold: ['JetBrainsMono_700Bold'],
+        mono: ['PixelifySans_500Medium'],
+        monoMedium: ['PixelifySans_600SemiBold'],
+        monoBold: ['PixelifySans_700Bold'],
       },
     },
   },

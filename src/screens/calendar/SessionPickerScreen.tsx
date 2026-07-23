@@ -2,6 +2,7 @@ import { ActivityIndicator, Alert, Pressable, SectionList, Text, View } from 're
 import { useCreateCalendarEntry } from '../../hooks/useCalendarEntries';
 import { useProgramsWithSessionsQuery } from '../../hooks/useProgramsWithSessions';
 import { formatDayLabel } from '../../lib/dateUtils';
+import { COLORS } from '../../theme/tokens';
 
 type Props = {
   route: { params: { dateKey: string } };
@@ -26,7 +27,7 @@ export function SessionPickerScreen({ navigation, route }: Props) {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }

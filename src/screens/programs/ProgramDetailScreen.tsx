@@ -7,6 +7,7 @@ import {
   useProgramSessionsQuery,
 } from '../../hooks/useProgramSessions';
 import type { ProgramsStackParamList } from '../../navigation/ProgramsStack';
+import { COLORS } from '../../theme/tokens';
 
 type Props = NativeStackScreenProps<ProgramsStackParamList, 'ProgramDetail'>;
 
@@ -19,7 +20,7 @@ export function ProgramDetailScreen({ navigation, route }: Props) {
     navigation.setOptions({
       headerRight: () => (
         <Pressable onPress={() => navigation.navigate('SessionForm', { programId })} hitSlop={8}>
-          <Ionicons name="add" size={26} color="#F5F6F7" />
+          <Ionicons name="add" size={26} color={COLORS.textPrimary} />
         </Pressable>
       ),
     });
@@ -47,7 +48,7 @@ export function ProgramDetailScreen({ navigation, route }: Props) {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -81,7 +82,7 @@ export function ProgramDetailScreen({ navigation, route }: Props) {
                 </Text>
               </View>
               <Pressable onPress={() => showActions(item)} hitSlop={8}>
-                <Ionicons name="ellipsis-horizontal" size={20} color="#9AA1AA" />
+                <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.textMuted} />
               </Pressable>
             </Pressable>
           );

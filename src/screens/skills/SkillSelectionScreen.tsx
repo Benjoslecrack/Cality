@@ -15,7 +15,7 @@ export function SkillSelectionScreen() {
   if (loadingCatalog || loadingSelection) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -39,8 +39,8 @@ export function SkillSelectionScreen() {
             <Switch
               value={active}
               onValueChange={(value) => toggle.mutate({ skillId: skill.id, active: value })}
-              trackColor={{ false: COLORS.bgBase, true: COLORS.accentDim }}
-              thumbColor={active ? COLORS.accent : COLORS.textMuted}
+              trackColor={{ false: COLORS.bgNight, true: COLORS.accentDim }}
+              thumbColor={active ? COLORS.neonMagenta : COLORS.textMuted}
             />
           </View>
         );

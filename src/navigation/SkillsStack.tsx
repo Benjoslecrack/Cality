@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { COLORS } from '../theme/tokens';
 import { SkillsListScreen } from '../screens/skills/SkillsListScreen';
 import { SkillDetailScreen } from '../screens/skills/SkillDetailScreen';
 import { SkillSelectionScreen } from '../screens/skills/SkillSelectionScreen';
@@ -19,10 +20,10 @@ export function SkillsStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#0B0D10' },
-        headerTintColor: '#F5F6F7',
+        headerStyle: { backgroundColor: COLORS.bgNight },
+        headerTintColor: COLORS.textPrimary,
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: '#0B0D10' },
+        contentStyle: { backgroundColor: COLORS.bgNight },
       }}
     >
       <Stack.Screen name="SkillsList" component={SkillsListScreen} options={{ title: 'Skills' }} />

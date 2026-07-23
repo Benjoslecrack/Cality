@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RankBadge } from '../../components/RankBadge';
 import { SimpleBarChart } from '../../components/SimpleBarChart';
-import { SteelBar } from '../../components/SteelBar';
+import { XPBar } from '../../components/XPBar';
 import { useSkillCatalogQuery, useSkillLogsQuery, useUserSkillProgressQuery } from '../../hooks/useSkillRanks';
 import { formatSetValue } from '../../lib/exerciseFormat';
 import { progressPoint } from '../../lib/progressValue';
@@ -57,7 +57,7 @@ export function SkillDetailScreen({ route }: Props) {
   if (loadingCatalog || loadingProgress || loadingLogs || !skill) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -77,7 +77,7 @@ export function SkillDetailScreen({ route }: Props) {
           </Text>
           <Text className="mt-1 font-display text-2xl text-text">{next.label}</Text>
           <View className="mt-3">
-            <SteelBar progress={tierProgress(next, logs ?? [])} fillColors={[COLORS.textMuted, RANK_COLORS[next.rank]]} />
+            <XPBar progress={tierProgress(next, logs ?? [])} fillColors={[COLORS.textMuted, RANK_COLORS[next.rank]]} />
           </View>
         </View>
       ) : (

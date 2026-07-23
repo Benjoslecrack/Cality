@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useExportLogsCsv, useExportProgressPdf } from '../hooks/useDataExport';
 import { useProfile, useUpdateProfile } from '../hooks/useProfile';
 import type { MainTabParamList } from '../navigation/MainTabs';
+import { COLORS } from '../theme/tokens';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Profile'>;
 
@@ -51,7 +52,7 @@ export function ProfileScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
