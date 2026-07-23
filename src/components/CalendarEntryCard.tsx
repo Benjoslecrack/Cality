@@ -3,7 +3,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { CalendarEntryWithSession } from '../hooks/useCalendarEntries';
 import { useDeleteCalendarEntry, useUpdateCalendarEntryStatus } from '../hooks/useCalendarEntries';
-import { useCreateWorkoutLog, useWorkoutLogByCalendarEntryQuery } from '../hooks/useWorkoutLogs';
+import {
+  useCreateWorkoutLog,
+  useDeleteWorkoutLog,
+  useWorkoutLogByCalendarEntryQuery,
+} from '../hooks/useWorkoutLogs';
 import type { CalendarStatus } from '../types/database';
 
 const STATUS_STYLES: Record<CalendarStatus, { label: string; badgeClass: string; textClass: string }> = {
@@ -18,6 +22,7 @@ export function CalendarEntryCard({ entry }: { entry: CalendarEntryWithSession }
   const navigation = useNavigation<{ navigate: (screen: string, params?: object) => void }>();
   const updateStatus = useUpdateCalendarEntryStatus();
   const deleteEntry = useDeleteCalendarEntry();
+  const deleteWorkoutLog = useDeleteWorkoutLog();
   const createWorkoutLog = useCreateWorkoutLog();
   const { data: existingLog } = useWorkoutLogByCalendarEntryQuery(entry.id);
   const statusStyle = STATUS_STYLES[entry.status];
@@ -25,9 +30,27 @@ export function CalendarEntryCard({ entry }: { entry: CalendarEntryWithSession }
   const setStatus = (status: CalendarStatus) => updateStatus.mutate({ id: entry.id, status });
 
   const confirmDelete = () => {
-    Alert.alert('Retirer cette séance du calendrier ?', undefined, [
+    if (!existingLog) {
+      Alert.alert('Retirer cette séance du calendrier ?', undefined, [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Retirer', style: 'destructive', onPress: () => deleteEntry.mutate(entry.id) },
+      ]);
+      return;
+    }
+    // Une séance avec un log associé propose deux suppressions distinctes :
+    // retirer juste l'assignation (garde l'historique/les skills) ou aussi
+    // supprimer les vraies performances loggées (action volontaire séparée).
+    Alert.alert('Retirer cette séance du calendrier ?', 'Un log existe pour cette séance.', [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Retirer', style: 'destructive', onPress: () => deleteEntry.mutate(entry.id) },
+      { text: 'Retirer seulement (garder le log)', onPress: () => deleteEntry.mutate(entry.id) },
+      {
+        text: 'Supprimer aussi le log',
+        style: 'destructive',
+        onPress: () => {
+          deleteWorkoutLog.mutate(existingLog.id);
+          deleteEntry.mutate(entry.id);
+        },
+      },
     ]);
   };
 

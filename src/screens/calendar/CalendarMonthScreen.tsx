@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCalendarEntriesRangeQuery } from '../../hooks/useCalendarEntries';
+import { useFreeWorkoutLogsRangeQuery } from '../../hooks/useWorkoutLogs';
 import { addMonths, getMonthGrid, isSameDay, monthLabel, toDateKey, weekdayLabels } from '../../lib/dateUtils';
 import type { CalendarStackParamList } from '../../navigation/CalendarStack';
 
@@ -16,14 +17,18 @@ export function CalendarMonthScreen({ navigation }: Props) {
   const startKey = toDateKey(grid[0].date);
   const endKey = toDateKey(grid[grid.length - 1].date);
   const { data: entries } = useCalendarEntriesRangeQuery(startKey, endKey);
+  const { data: freeLogs } = useFreeWorkoutLogsRangeQuery(startKey, endKey);
 
   const entryCountByDate = useMemo(() => {
     const counts = new Map<string, number>();
     for (const entry of entries ?? []) {
       counts.set(entry.scheduled_date, (counts.get(entry.scheduled_date) ?? 0) + 1);
     }
+    for (const log of freeLogs ?? []) {
+      counts.set(log.performed_date, (counts.get(log.performed_date) ?? 0) + 1);
+    }
     return counts;
-  }, [entries]);
+  }, [entries, freeLogs]);
 
   return (
     <View className="flex-1 bg-background px-4 pt-4">

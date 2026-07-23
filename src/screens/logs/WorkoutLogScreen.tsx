@@ -1,9 +1,14 @@
 import { useMemo, useState, useEffect } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { useExerciseLogsQuery } from '../../hooks/useExerciseLogs';
-import { usePlannedExercisesQuery, useUpdateWorkoutLog, useWorkoutLogQuery } from '../../hooks/useWorkoutLogs';
+import {
+  useDeleteWorkoutLog,
+  usePlannedExercisesQuery,
+  useUpdateWorkoutLog,
+  useWorkoutLogQuery,
+} from '../../hooks/useWorkoutLogs';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget, formatSetValue } from '../../lib/exerciseFormat';
 import { formatDayLabel } from '../../lib/dateUtils';
 import { skillLabel } from '../../lib/skills';
@@ -37,6 +42,7 @@ type Props = {
   route: { params: { workoutLogId: string } };
   navigation: {
     navigate: (screen: string, params?: object) => void;
+    goBack: () => void;
   };
 };
 
@@ -46,6 +52,7 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
   const { data: plannedExercises } = usePlannedExercisesQuery(workoutLog?.calendar_entry_id);
   const { data: exerciseLogs, isLoading: isLoadingLogs } = useExerciseLogsQuery(workoutLogId);
   const updateWorkoutLog = useUpdateWorkoutLog(workoutLogId);
+  const deleteWorkoutLog = useDeleteWorkoutLog();
 
   const [notes, setNotes] = useState('');
 
@@ -102,6 +109,24 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
   }, [plannedExercises, exerciseLogs]);
 
   const notesChanged = workoutLog && notes !== (workoutLog.notes ?? '');
+
+  const handleDelete = () => {
+    Alert.alert(
+      'Supprimer cette séance loggée ?',
+      'Toutes les séries enregistrées seront définitivement supprimées, y compris pour le calcul des skills.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteWorkoutLog.mutateAsync(workoutLogId);
+            navigation.goBack();
+          },
+        },
+      ]
+    );
+  };
 
   if (isLoadingLog || isLoadingLogs || !workoutLog) {
     return (
@@ -196,13 +221,24 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
         numberOfLines={3}
       />
       {notesChanged ? (
-        <Button
-          label="Enregistrer les notes"
-          variant="secondary"
-          loading={updateWorkoutLog.isPending}
-          onPress={() => updateWorkoutLog.mutate({ notes: notes.trim() || null })}
-        />
+        <View className="mb-3">
+          <Button
+            label="Enregistrer les notes"
+            variant="secondary"
+            loading={updateWorkoutLog.isPending}
+            onPress={() => updateWorkoutLog.mutate({ notes: notes.trim() || null })}
+          />
+        </View>
       ) : null}
+
+      <View className="mt-3">
+        <Button
+          label="Supprimer cette séance loggée"
+          variant="secondary"
+          loading={deleteWorkoutLog.isPending}
+          onPress={handleDelete}
+        />
+      </View>
     </ScrollView>
   );
 }

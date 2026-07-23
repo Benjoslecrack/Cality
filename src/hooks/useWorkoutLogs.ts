@@ -110,6 +110,55 @@ export function useUpdateWorkoutLog(workoutLogId: string) {
   });
 }
 
+// Suppression explicite et volontaire d'un log (et donc de ses series/exercise_logs
+// en cascade) : sépare "retirer du calendrier" (qui garde l'historique) de
+// "supprimer mes vraies performances loggées" (qui les retire du calcul des skills).
+export function useDeleteWorkoutLog() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('workout_logs').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workout_logs'] });
+      queryClient.invalidateQueries({ queryKey: ['workout_log'] });
+      queryClient.invalidateQueries({ queryKey: ['exercise_logs'] });
+      queryClient.invalidateQueries({ queryKey: ['progress_history'] });
+    },
+  });
+}
+
+// Séances libres (non liées à une calendar_entry) sur une plage de dates :
+// utilisé par les vues Calendrier/Aujourd'hui pour les afficher au même titre
+// que les séances planifiées.
+export function useFreeWorkoutLogsRangeQuery(startDateKey: string, endDateKey: string) {
+  const { session } = useAuth();
+  const userId = session?.user.id;
+
+  return useQuery({
+    queryKey: ['workout_logs', 'free', userId, startDateKey, endDateKey],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('workout_logs')
+        .select('*')
+        .eq('user_id', userId!)
+        .is('calendar_entry_id', null)
+        .gte('performed_date', startDateKey)
+        .lte('performed_date', endDateKey)
+        .order('performed_date', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useFreeWorkoutLogsByDateQuery(dateKey: string) {
+  return useFreeWorkoutLogsRangeQuery(dateKey, dateKey);
+}
+
 export function useRecentWorkoutLogsQuery() {
   const { session } = useAuth();
   const userId = session?.user.id;

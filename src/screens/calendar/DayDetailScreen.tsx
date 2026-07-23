@@ -1,17 +1,24 @@
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CalendarEntryCard } from '../../components/CalendarEntryCard';
+import { FreeWorkoutLogCard } from '../../components/FreeWorkoutLogCard';
 import { useDayEntriesQuery } from '../../hooks/useCalendarEntries';
+import { useFreeWorkoutLogsByDateQuery } from '../../hooks/useWorkoutLogs';
 import { formatDayLabel } from '../../lib/dateUtils';
 import type { CalendarStackParamList } from '../../navigation/CalendarStack';
 
 type Props = NativeStackScreenProps<CalendarStackParamList, 'DayDetail'>;
 
+type Row =
+  | { kind: 'entry'; id: string; entry: NonNullable<ReturnType<typeof useDayEntriesQuery>['data']>[number] }
+  | { kind: 'free'; id: string; log: NonNullable<ReturnType<typeof useFreeWorkoutLogsByDateQuery>['data']>[number] };
+
 export function DayDetailScreen({ navigation, route }: Props) {
   const { dateKey } = route.params;
-  const { data: entries, isLoading } = useDayEntriesQuery(dateKey);
+  const { data: entries, isLoading: isLoadingEntries } = useDayEntriesQuery(dateKey);
+  const { data: freeLogs, isLoading: isLoadingFreeLogs } = useFreeWorkoutLogsByDateQuery(dateKey);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -24,7 +31,13 @@ export function DayDetailScreen({ navigation, route }: Props) {
     });
   }, [navigation, dateKey]);
 
-  if (isLoading) {
+  const rows = useMemo<Row[]>(() => {
+    const entryRows: Row[] = (entries ?? []).map((entry) => ({ kind: 'entry', id: entry.id, entry }));
+    const freeRows: Row[] = (freeLogs ?? []).map((log) => ({ kind: 'free', id: log.id, log }));
+    return [...entryRows, ...freeRows];
+  }, [entries, freeLogs]);
+
+  if (isLoadingEntries || isLoadingFreeLogs) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator color="#F2545B" />
@@ -35,8 +48,8 @@ export function DayDetailScreen({ navigation, route }: Props) {
   return (
     <View className="flex-1 bg-background">
       <FlatList
-        data={entries}
-        keyExtractor={(item) => item.id}
+        data={rows}
+        keyExtractor={(row) => row.id}
         contentContainerClassName="px-6 py-6 gap-3"
         ListEmptyComponent={
           <View className="mt-16 items-center px-6">
@@ -46,7 +59,9 @@ export function DayDetailScreen({ navigation, route }: Props) {
             </Text>
           </View>
         }
-        renderItem={({ item }) => <CalendarEntryCard entry={item} />}
+        renderItem={({ item }) =>
+          item.kind === 'entry' ? <CalendarEntryCard entry={item.entry} /> : <FreeWorkoutLogCard log={item.log} />
+        }
       />
     </View>
   );
