@@ -24,7 +24,13 @@ async function shareFile(uri: string, mimeType: string, dialogTitle: string) {
 // fonctionnent bien en pratique, seul le typage ne les expose pas) : on retype
 // localement le sous-ensemble utilisé ici plutôt que de perdre la vérification
 // de type sur tout le fichier.
-type WritableFile = { exists: boolean; delete(): void; create(): void; write(content: string): void; uri: string };
+type WritableFile = {
+  exists: boolean;
+  delete(): void;
+  create(): void;
+  write(content: string, options?: { encoding?: 'utf8' | 'base64' }): void;
+  uri: string;
+};
 function asWritableFile(file: File): WritableFile {
   return file as unknown as WritableFile;
 }
@@ -96,9 +102,18 @@ export function useExportProgressPdf() {
       });
 
       const html = buildProgressSummaryHtml(summaries);
-      const { uri } = await Print.printToFileAsync({ html, base64: false });
+      // expo-print écrit le PDF dans son propre dossier de cache natif, dont
+      // le chemin n'est pas reconnu par le contrôle de permission de fichier
+      // d'expo-sharing (erreur "Not allowed to read file under given URL" sur
+      // Android) : on réécrit le contenu dans un fichier créé via notre propre
+      // Paths.cache — le même chemin déjà utilisé (et fonctionnel) pour le CSV.
+      const { base64 } = await Print.printToFileAsync({ html, base64: true });
+      const file = asWritableFile(new File(Paths.cache, `cality-progression-${todayDateKey()}.pdf`));
+      if (file.exists) file.delete();
+      file.create();
+      file.write(base64!, { encoding: 'base64' });
 
-      await shareFile(uri, 'application/pdf', 'Exporter ma progression');
+      await shareFile(file.uri, 'application/pdf', 'Exporter ma progression');
     },
   });
 }
