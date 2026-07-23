@@ -53,8 +53,8 @@ export function SignInScreen({ navigation }: Props) {
       className="flex-1 bg-background"
     >
       <ScrollView contentContainerClassName="flex-1 justify-center px-6" keyboardShouldPersistTaps="handled">
-        <Text className="mb-1 text-3xl font-bold text-text">Cality</Text>
-        <Text className="mb-8 text-base text-textMuted">Connecte-toi pour continuer ta progression.</Text>
+        <Text className="mb-1 font-displayBold text-4xl text-text">CALITY</Text>
+        <Text className="mb-8 font-body text-base text-textMuted">Connecte-toi pour continuer ta progression.</Text>
 
         <TextField
           label="Email"
@@ -85,9 +85,9 @@ export function SignInScreen({ navigation }: Props) {
           />
         </View>
 
-        <Text className="text-center text-textMuted">
+        <Text className="text-center font-body text-textMuted">
           Pas encore de compte ?{' '}
-          <Text className="font-semibold text-primary" onPress={() => navigation.navigate('SignUp')}>
+          <Text className="font-bodySemibold text-primary" onPress={() => navigation.navigate('SignUp')}>
             Créer un compte
           </Text>
         </Text>
