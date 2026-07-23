@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
+import storage from './authStorage';
 import type { Database } from '../types/database';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -11,11 +11,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// AsyncStorage plutôt que SecureStore : les tokens de session peuvent dépasser
-// la limite de taille de SecureStore (~2048 octets) sur certains appareils.
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: AsyncStorage,
+    storage,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
