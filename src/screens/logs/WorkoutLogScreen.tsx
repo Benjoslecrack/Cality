@@ -149,7 +149,7 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
       {hasPlan ? (
         <Pressable
           onPress={() => navigation.navigate('GuidedSession', { workoutLogId })}
-          className="mb-4 min-h-11 items-center justify-center border-2 border-accentDim py-3"
+          className="mb-4 min-h-11 items-center justify-center border-2 border-accent py-3"
         >
           <Text className="font-bodySemibold text-sm text-text">Démarrer en mode guidé</Text>
         </Pressable>

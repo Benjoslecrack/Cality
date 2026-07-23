@@ -242,13 +242,13 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
           <>
             {wasRecord ? (
               <View className="mb-4">
-                <Text className="mb-1.5 font-display text-sm uppercase text-accent">Nouveau record !</Text>
+                <Text className="mb-1.5 font-display text-base uppercase text-accent">Nouveau record !</Text>
                 <XPBar progress={1} justRecorded />
               </View>
             ) : null}
             {tierFlash ? (
               <View className="mb-4">
-                <Text className="mb-1.5 font-display text-sm uppercase" style={{ color: tierFlash.color }}>
+                <Text className="mb-1.5 font-display text-base uppercase" style={{ color: tierFlash.color }}>
                   {tierFlash.label}
                 </Text>
                 <XPBar progress={1} justRanked={tierFlash.isRankUp} fillColors={[COLORS.textMuted, tierFlash.color]} />

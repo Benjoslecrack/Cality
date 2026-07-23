@@ -114,12 +114,12 @@ export function CalendarEntryCard({ entry, size = 'default' }: Props) {
 
       <View className="mt-3 flex-row flex-wrap items-center gap-2">
         {entry.status !== 'done' ? (
-          <Pressable onPress={() => setStatus('done')} className="min-h-11 justify-center border-2 border-accentDim px-3">
+          <Pressable onPress={() => setStatus('done')} className="min-h-11 justify-center border-2 border-accent px-3">
             <Text className="font-bodyMedium text-sm text-text">Marquer fait</Text>
           </Pressable>
         ) : null}
         {entry.status !== 'skipped' ? (
-          <Pressable onPress={() => setStatus('skipped')} className="min-h-11 justify-center border-2 border-accentDim px-3">
+          <Pressable onPress={() => setStatus('skipped')} className="min-h-11 justify-center border-2 border-accent px-3">
             <Text className="font-bodyMedium text-sm text-text">Marquer sauté</Text>
           </Pressable>
         ) : null}

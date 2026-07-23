@@ -40,10 +40,10 @@ export function RestTimerBar() {
             <XPBar progress={progress} />
           </View>
           <View className="flex-row items-center gap-2">
-            <Pressable onPress={() => addTime(-15)} className="min-h-11 flex-1 items-center justify-center border-2 border-accentDim">
+            <Pressable onPress={() => addTime(-15)} className="min-h-11 flex-1 items-center justify-center border-2 border-accent">
               <Text className="font-bodyMedium text-sm text-text">−15s</Text>
             </Pressable>
-            <Pressable onPress={() => addTime(15)} className="min-h-11 flex-1 items-center justify-center border-2 border-accentDim">
+            <Pressable onPress={() => addTime(15)} className="min-h-11 flex-1 items-center justify-center border-2 border-accent">
               <Text className="font-bodyMedium text-sm text-text">+15s</Text>
             </Pressable>
             <Pressable onPress={skip} className="min-h-11 flex-1 items-center justify-center border-2 border-transparent">

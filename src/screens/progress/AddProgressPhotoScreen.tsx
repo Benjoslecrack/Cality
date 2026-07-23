@@ -98,9 +98,9 @@ export function AddProgressPhotoScreen({ navigation }: Props) {
 
       <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Photo</Text>
       {pickedUri ? (
-        <Image source={{ uri: pickedUri }} className="mb-4 h-80 w-full rounded-2xl bg-surface" resizeMode="cover" />
+        <Image source={{ uri: pickedUri }} className="mb-4 h-80 w-full border-2 border-border bg-surface" resizeMode="cover" />
       ) : (
-        <View className="mb-4 h-80 w-full items-center justify-center rounded-2xl bg-surface">
+        <View className="mb-4 h-80 w-full items-center justify-center border-2 border-border bg-surface">
           <Text className="font-body text-textMuted">Aucune photo sélectionnée</Text>
         </View>
       )}

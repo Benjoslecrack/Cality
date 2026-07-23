@@ -34,7 +34,7 @@ export function Button({ label, onPress, variant = 'primary', loading, disabled 
         onPress={onPress}
         disabled={isInactive}
         className={`min-h-11 items-center justify-center border-2 py-3 ${
-          isPrimary ? 'border-accentDim bg-accent' : 'border-accentDim bg-transparent'
+          isPrimary ? 'border-accentDim bg-accent' : 'border-accent bg-transparent'
         }`}
         style={({ pressed }) => [
           pressed ? { transform: [{ translateX: SHADOW_OFFSET }, { translateY: SHADOW_OFFSET }] } : null,

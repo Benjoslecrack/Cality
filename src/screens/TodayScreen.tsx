@@ -97,7 +97,7 @@ export function TodayScreen({ navigation }: Props) {
                 ) : null}
               </>
             ) : (
-              <View className="items-start rounded-2xl bg-surface p-6">
+              <View className="items-start border-2 border-border bg-surface p-6">
                 <Text className="mb-4 font-display text-2xl text-text">Aucune séance planifiée</Text>
                 <View className="mb-5 w-full">
                   <XPBar />

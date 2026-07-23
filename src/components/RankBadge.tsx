@@ -93,7 +93,7 @@ export function RankBadge({ rank, subLevel }: RankBadgeProps) {
       ) : (
         <PixelGem color={color} />
       )}
-      <Text style={{ color }} className="font-display text-xs">
+      <Text style={{ color }} className="font-display text-sm">
         {(subLevel != null ? formatRankLabel(rank, subLevel) : RANK_LABELS[rank]).toUpperCase()}
       </Text>
     </View>

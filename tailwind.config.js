@@ -18,7 +18,9 @@ const COLORS = {
   // et les bordures de carte — équivalents directs de accent/accentDim.
   primary: '#FF2E92',
   primaryMuted: '#7A1749',
-  border: 'rgba(156, 140, 194, 0.25)', // text-muted à faible opacité
+  // 70% et non 25% : à 2px plein, un filet trop pâle tombe sous le seuil de
+  // contraste non-textuel AA (3:1) pour délimiter une carte/un contrôle.
+  border: 'rgba(156, 140, 194, 0.7)',
 };
 
 module.exports = {

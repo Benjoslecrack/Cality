@@ -39,13 +39,13 @@ export function DateField({ label, dateKey, onChange, maximumDate = new Date() }
       <Text className="mb-1.5 font-bodyMedium text-sm text-textMuted">{label}</Text>
       <Pressable
         onPress={openPicker}
-        className="min-h-11 justify-center rounded-xl border border-textMuted/25 bg-surface px-4 py-3"
+        className="min-h-11 justify-center border-2 border-border bg-surface px-4 py-3"
       >
         <Text className="font-body text-base text-text">{formatDayLabel(dateKey)}</Text>
       </Pressable>
 
       {showIosPicker ? (
-        <View className="mt-2 rounded-xl bg-surface p-2">
+        <View className="mt-2 border-2 border-border bg-surface p-2">
           <DateTimePicker
             value={value}
             mode="date"
