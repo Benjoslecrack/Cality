@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ComingSoonScreen } from '../screens/ComingSoonScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { ProgramsStack } from './ProgramsStack';
 
 export type MainTabParamList = {
   Today: undefined;
@@ -18,9 +19,6 @@ function TodayScreen() {
 }
 function CalendarScreen() {
   return <ComingSoonScreen title="Calendrier" />;
-}
-function ProgramsScreen() {
-  return <ComingSoonScreen title="Programmes" />;
 }
 function SkillsScreen() {
   return <ComingSoonScreen title="Skills" />;
@@ -51,7 +49,7 @@ export function MainTabs() {
     >
       <Tab.Screen name="Today" component={TodayScreen} options={{ title: "Aujourd'hui" }} />
       <Tab.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Calendrier' }} />
-      <Tab.Screen name="Programs" component={ProgramsScreen} options={{ title: 'Programmes' }} />
+      <Tab.Screen name="Programs" component={ProgramsStack} options={{ title: 'Programmes', headerShown: false }} />
       <Tab.Screen name="Skills" component={SkillsScreen} options={{ title: 'Skills' }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil', headerShown: false }} />
     </Tab.Navigator>
