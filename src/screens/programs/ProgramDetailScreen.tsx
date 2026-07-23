@@ -61,7 +61,7 @@ export function ProgramDetailScreen({ navigation, route }: Props) {
         contentContainerClassName="px-6 py-6 gap-3"
         ListEmptyComponent={
           <View className="mt-16 items-center px-6">
-            <Text className="mb-2 text-lg font-semibold text-text">Aucune séance pour l'instant</Text>
+            <Text className="mb-2 font-display text-xl text-text">Aucune séance pour l'instant</Text>
             <Text className="text-center text-textMuted">
               Ajoute une séance type (ex. Push, Pull, Legs, Skills) avec le bouton + en haut à droite.
             </Text>
@@ -73,10 +73,10 @@ export function ProgramDetailScreen({ navigation, route }: Props) {
             <Pressable
               onPress={() => navigation.navigate('SessionEditor', { programSessionId: item.id, sessionName: item.name })}
               onLongPress={() => showActions(item)}
-              className="flex-row items-center justify-between rounded-2xl border border-border bg-surface p-4"
+              className="flex-row items-center justify-between border-2 border-border bg-surface p-4"
             >
               <View>
-                <Text className="text-lg font-semibold text-text">{item.name}</Text>
+                <Text className="font-bodySemibold text-lg text-text">{item.name}</Text>
                 <Text className="mt-1 text-sm text-textMuted">
                   {exerciseCount} exercice{exerciseCount > 1 ? 's' : ''}
                 </Text>

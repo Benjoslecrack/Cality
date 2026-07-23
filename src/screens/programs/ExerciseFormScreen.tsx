@@ -101,17 +101,17 @@ export function ExerciseFormScreen({ navigation, route }: Props) {
       <ScrollView contentContainerClassName="px-6 pt-6 pb-12" keyboardShouldPersistTaps="handled">
         <TextField label="Nom de l'exercice" value={name} onChangeText={setName} placeholder="Ex. Développé couché" />
 
-        <Text className="mb-1.5 text-sm font-medium text-textMuted">Type</Text>
+        <Text className="mb-1.5 font-bodyMedium text-sm text-textMuted">Type</Text>
         <View className="mb-4 gap-2">
           {EXERCISE_TYPES.map((option) => (
             <Pressable
               key={option}
               onPress={() => setType(option)}
-              className={`rounded-xl border px-4 py-3 ${
+              className={`border-2 px-4 py-3 ${
                 type === option ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
               }`}
             >
-              <Text className={type === option ? 'font-medium text-text' : 'text-textMuted'}>
+              <Text className={type === option ? 'font-bodyMedium text-text' : 'font-body text-textMuted'}>
                 {EXERCISE_TYPE_LABELS[option]}
               </Text>
             </Pressable>
@@ -174,27 +174,27 @@ export function ExerciseFormScreen({ navigation, route }: Props) {
           suffix="s"
         />
 
-        <Text className="mb-1.5 mt-2 text-sm font-medium text-textMuted">
+        <Text className="mb-1.5 mt-2 font-bodyMedium text-sm text-textMuted">
           Rattacher à un skill suivi (optionnel)
         </Text>
         <View className="mb-4 flex-row flex-wrap gap-2">
           <Pressable
             onPress={() => setSkillId(null)}
-            className={`rounded-full border px-4 py-2 ${
+            className={`border-2 px-4 py-2 ${
               skillId === null ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
             }`}
           >
-            <Text className={skillId === null ? 'font-medium text-text' : 'text-textMuted'}>Aucun</Text>
+            <Text className={skillId === null ? 'font-bodyMedium text-text' : 'font-body text-textMuted'}>Aucun</Text>
           </Pressable>
           {(catalog ?? []).map((skill) => (
             <Pressable
               key={skill.id}
               onPress={() => setSkillId(skill.id)}
-              className={`rounded-full border px-4 py-2 ${
+              className={`border-2 px-4 py-2 ${
                 skillId === skill.id ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
               }`}
             >
-              <Text className={skillId === skill.id ? 'font-medium text-text' : 'text-textMuted'}>
+              <Text className={skillId === skill.id ? 'font-bodyMedium text-text' : 'font-body text-textMuted'}>
                 {skill.name}
               </Text>
             </Pressable>

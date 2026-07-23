@@ -64,7 +64,7 @@ export function ProgramsListScreen({ navigation }: Props) {
         contentContainerClassName="px-6 py-6 gap-3"
         ListEmptyComponent={
           <View className="mt-16 items-center px-6">
-            <Text className="mb-2 text-lg font-semibold text-text">Aucun programme pour l'instant</Text>
+            <Text className="mb-2 font-display text-xl text-text">Aucun programme pour l'instant</Text>
             <Text className="text-center text-textMuted">
               Crée ton premier programme (ex. Push / Pull / Legs / Skills) avec le bouton + en haut à droite.
             </Text>
@@ -76,10 +76,10 @@ export function ProgramsListScreen({ navigation }: Props) {
             <Pressable
               onPress={() => navigation.navigate('ProgramDetail', { programId: item.id, programName: item.name })}
               onLongPress={() => showActions(item)}
-              className="rounded-2xl border border-border bg-surface p-4"
+              className="border-2 border-border bg-surface p-4"
             >
               <View className="flex-row items-center justify-between">
-                <Text className="text-lg font-semibold text-text">{item.name}</Text>
+                <Text className="font-bodySemibold text-lg text-text">{item.name}</Text>
                 <Pressable onPress={() => showActions(item)} hitSlop={8}>
                   <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.textMuted} />
                 </Pressable>

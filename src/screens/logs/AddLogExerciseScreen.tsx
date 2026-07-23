@@ -54,7 +54,7 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-6 pt-6" keyboardShouldPersistTaps="handled">
       <TextField label="Nom de l'exercice" value={name} onChangeText={setName} placeholder="Ex. Dips lestés" />
 
-      <Text className="mb-1.5 text-sm font-medium text-textMuted">Type</Text>
+      <Text className="mb-1.5 font-bodyMedium text-sm text-textMuted">Type</Text>
       <View className="mb-4 gap-2">
         {EXERCISE_TYPES.map((option) => (
           <Pressable
@@ -64,14 +64,14 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
               type === option ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
             }`}
           >
-            <Text className={type === option ? 'font-medium text-text' : 'text-textMuted'}>
+            <Text className={type === option ? 'font-bodyMedium text-text' : 'font-body text-textMuted'}>
               {EXERCISE_TYPE_LABELS[option]}
             </Text>
           </Pressable>
         ))}
       </View>
 
-      <Text className="mb-1.5 text-sm font-medium text-textMuted">Rattacher à un skill suivi (optionnel)</Text>
+      <Text className="mb-1.5 font-bodyMedium text-sm text-textMuted">Rattacher à un skill suivi (optionnel)</Text>
       <View className="mb-6 flex-row flex-wrap gap-2">
         <Pressable
           onPress={() => setSkillId(null)}
@@ -79,7 +79,7 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
             skillId === null ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
           }`}
         >
-          <Text className={skillId === null ? 'font-medium text-text' : 'text-textMuted'}>Aucun</Text>
+          <Text className={skillId === null ? 'font-bodyMedium text-text' : 'font-body text-textMuted'}>Aucun</Text>
         </Pressable>
         {(catalog ?? []).map((skill) => (
           <Pressable
@@ -89,7 +89,7 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
               skillId === skill.id ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
             }`}
           >
-            <Text className={skillId === skill.id ? 'font-medium text-text' : 'text-textMuted'}>{skill.name}</Text>
+            <Text className={skillId === skill.id ? 'font-bodyMedium text-text' : 'font-body text-textMuted'}>{skill.name}</Text>
           </Pressable>
         ))}
       </View>
