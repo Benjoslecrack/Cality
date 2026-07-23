@@ -3,8 +3,8 @@ import { ActivityIndicator, Alert, FlatList, Pressable, Text, View } from 'react
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useDeleteSessionExercise, useSessionExercisesQuery } from '../../hooks/useSessionExercises';
+import { useSkillCatalogQuery } from '../../hooks/useSkillRanks';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget } from '../../lib/exerciseFormat';
-import { skillLabel } from '../../lib/skills';
 import type { ProgramsStackParamList } from '../../navigation/ProgramsStack';
 
 type Props = NativeStackScreenProps<ProgramsStackParamList, 'SessionEditor'>;
@@ -12,7 +12,9 @@ type Props = NativeStackScreenProps<ProgramsStackParamList, 'SessionEditor'>;
 export function SessionEditorScreen({ navigation, route }: Props) {
   const { programSessionId } = route.params;
   const { data: exercises, isLoading } = useSessionExercisesQuery(programSessionId);
+  const { data: catalog } = useSkillCatalogQuery();
   const deleteExercise = useDeleteSessionExercise(programSessionId);
+  const skillNameById = new Map((catalog ?? []).map((skill) => [skill.id, skill.name]));
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -39,7 +41,7 @@ export function SessionEditorScreen({ navigation, route }: Props) {
             initialValues: {
               name: item.name,
               type: item.type,
-              skill_key: item.skill_key,
+              skill_id: item.skill_id,
               target_sets: item.target_sets,
               target_reps: item.target_reps,
               target_weight_kg: item.target_weight_kg,
@@ -92,9 +94,9 @@ export function SessionEditorScreen({ navigation, route }: Props) {
           >
             <View className="flex-row items-center justify-between">
               <Text className="text-base font-semibold text-text">{item.name}</Text>
-              {item.skill_key ? (
+              {item.skill_id && skillNameById.has(item.skill_id) ? (
                 <View className="rounded-full border border-primary bg-primaryMuted px-2.5 py-0.5">
-                  <Text className="text-xs font-medium text-text">{skillLabel(item.skill_key)}</Text>
+                  <Text className="text-xs font-medium text-text">{skillNameById.get(item.skill_id)}</Text>
                 </View>
               ) : null}
             </View>

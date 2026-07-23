@@ -4,6 +4,7 @@ import {
   isCriterionSatisfiedByLog,
   isHigherRank,
   isTierSatisfied,
+  nextLockedTier,
   rankIndex,
   tierProgress,
   type RankableLog,
@@ -126,6 +127,33 @@ describe('currentRank', () => {
   it('renvoie le plus haut rang parmi ceux débloqués', () => {
     expect(currentRank(['iron', 'bronze', 'silver'])).toBe('silver');
     expect(currentRank(['gold', 'iron'])).toBe('gold');
+  });
+});
+
+describe('nextLockedTier', () => {
+  const tiers: SkillTierWithCriteria[] = [
+    { id: 'iron', rank: 'iron', criteria: [] },
+    { id: 'bronze', rank: 'bronze', criteria: [] },
+    { id: 'silver', rank: 'silver', criteria: [] },
+    { id: 'gold', rank: 'gold', criteria: [] },
+    { id: 'master', rank: 'master', criteria: [] },
+  ];
+
+  it("renvoie le premier palier non débloqué dans l'ordre Fer -> Maître", () => {
+    expect(nextLockedTier(tiers, new Set(['iron', 'bronze']))?.id).toBe('silver');
+  });
+
+  it("renvoie le palier Fer si rien n'est débloqué", () => {
+    expect(nextLockedTier(tiers, new Set())?.id).toBe('iron');
+  });
+
+  it('renvoie null si tous les paliers sont débloqués (Maître atteint)', () => {
+    expect(nextLockedTier(tiers, new Set(['iron', 'bronze', 'silver', 'gold', 'master']))).toBeNull();
+  });
+
+  it("n'est pas perturbé par l'ordre des paliers en entrée (retrie en interne)", () => {
+    const shuffled = [tiers[3], tiers[0], tiers[4], tiers[1], tiers[2]];
+    expect(nextLockedTier(shuffled, new Set(['iron']))?.id).toBe('bronze');
   });
 });
 

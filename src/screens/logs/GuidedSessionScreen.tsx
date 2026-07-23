@@ -7,12 +7,15 @@ import { TextField } from '../../components/TextField';
 import { useRestTimer } from '../../contexts/RestTimerContext';
 import { useAddExerciseSet, useExerciseLogsQuery } from '../../hooks/useExerciseLogs';
 import { DEFAULT_REST_SECONDS } from '../../hooks/useSessionExercises';
+import { useSkillCatalogQuery } from '../../hooks/useSkillRanks';
 import { usePlannedExercisesQuery, useWorkoutLogQuery } from '../../hooks/useWorkoutLogs';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget } from '../../lib/exerciseFormat';
 import { isDataConflictError } from '../../lib/queryClient';
 import { useSuggestedSet } from '../../hooks/useSuggestedSet';
-import { skillLabel } from '../../lib/skills';
+import { RANK_COLORS, RANK_LABELS } from '../../lib/rankPresentation';
+import { isHigherRank } from '../../lib/skillRanks';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
+import type { SkillRank } from '../../types/database';
 
 type Props = {
   route: { params: { workoutLogId: string } };
@@ -26,6 +29,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
   const { data: exerciseLogs, isLoading: isLoadingLogs } = useExerciseLogsQuery(workoutLogId);
   const addSet = useAddExerciseSet(workoutLogId);
   const restTimer = useRestTimer();
+  const { data: catalog } = useSkillCatalogQuery();
 
   const steps = useMemo(() => {
     return (plannedExercises ?? []).flatMap((exercise) =>
@@ -51,6 +55,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
   const [hold, setHold] = useState(20);
   const [variant, setVariant] = useState('');
   const [wasRecord, setWasRecord] = useState(false);
+  const [rankUp, setRankUp] = useState<SkillRank | null>(null);
 
   useEffect(() => {
     if (stepIndex === null && !isLoadingLogs) setStepIndex(resumeIndex);
@@ -133,6 +138,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
     // sans bloquer le déroulé du mode guidé.
     restTimer.start(exercise.target_rest_seconds ?? DEFAULT_REST_SECONDS, exercise.name);
     setWasRecord(false);
+    setRankUp(null);
     setPhase('logged');
 
     addSet.mutate(
@@ -148,7 +154,13 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
         progression_variant: exercise.type === 'progression' ? variant.trim() || null : null,
       },
       {
-        onSuccess: ({ isNewRecord }) => setWasRecord(isNewRecord),
+        onSuccess: ({ isNewRecord, newlyUnlockedTiers }) => {
+          setWasRecord(isNewRecord);
+          if (newlyUnlockedTiers.length > 0) {
+            const highest = newlyUnlockedTiers.reduce((top, tier) => (isHigherRank(tier.rank, top.rank) ? tier : top));
+            setRankUp(highest.rank);
+          }
+        },
         onError: (error) => {
           if (!isDataConflictError(error)) Alert.alert('Erreur', (error as Error).message);
         },
@@ -168,10 +180,12 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
         })()}
       </Text>
       <Text className="mb-1 font-display text-3xl text-text">{exercise.name}</Text>
-      {exercise.skill_key ? (
+      {exercise.skill_id && catalog?.find((s) => s.id === exercise.skill_id) ? (
         <View className="mb-2 flex-row">
           <View className="rounded-full border border-accent bg-accentDim/40 px-2.5 py-0.5">
-            <Text className="font-bodyMedium text-xs text-text">{skillLabel(exercise.skill_key)}</Text>
+            <Text className="font-bodyMedium text-xs text-text">
+              {catalog.find((s) => s.id === exercise.skill_id)!.name}
+            </Text>
           </View>
         </View>
       ) : null}
@@ -227,9 +241,16 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
                 <Text className="mb-1.5 font-bodySemibold text-sm text-accent">Nouveau record</Text>
                 <SteelBar progress={1} justRecorded />
               </View>
-            ) : (
-              <Text className="mb-4 font-body text-textMuted">Série enregistrée.</Text>
-            )}
+            ) : null}
+            {rankUp ? (
+              <View className="mb-4">
+                <Text className="mb-1.5 font-bodySemibold text-sm" style={{ color: RANK_COLORS[rankUp] }}>
+                  Nouveau rang : {RANK_LABELS[rankUp]}
+                </Text>
+                <SteelBar progress={1} justRanked fillColors={[COLORS.textMuted, RANK_COLORS[rankUp]]} />
+              </View>
+            ) : null}
+            {!wasRecord && !rankUp ? <Text className="mb-4 font-body text-textMuted">Série enregistrée.</Text> : null}
             <Pressable
               onPress={handleNext}
               className="min-h-11 items-center justify-center rounded-xl bg-accent py-4"

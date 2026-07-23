@@ -1,22 +1,21 @@
 import { useMemo } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { SimpleBarChart } from '../../components/SimpleBarChart';
-import { SkillMilestoneBadges } from '../../components/SkillMilestoneBadges';
 import { useProgressHistoryQuery } from '../../hooks/useProgressHistory';
 import { formatSetValue } from '../../lib/exerciseFormat';
 import { progressPoint } from '../../lib/progressValue';
 import { aggregateWeeklyBest } from '../../lib/weeklyAggregate';
 import { COLORS } from '../../theme/tokens';
-import type { SkillKey } from '../../types/database';
 
 type Props = {
-  route: { params: { title: string; skillKey?: SkillKey; sessionExerciseId?: string } };
+  route: { params: { title: string; sessionExerciseId: string } };
 };
 
+// Historique d'un exercice précis d'un programme (accessible depuis l'onglet
+// Programmes) : le suivi par skill vit désormais dans SkillDetailScreen.
 export function ProgressHistoryScreen({ route }: Props) {
-  const { skillKey, sessionExerciseId } = route.params;
-  const filter = skillKey ? { skillKey } : { sessionExerciseId: sessionExerciseId! };
-  const { data: history, isLoading } = useProgressHistoryQuery(filter);
+  const { sessionExerciseId } = route.params;
+  const { data: history, isLoading } = useProgressHistoryQuery({ sessionExerciseId });
 
   const chartPoints = useMemo(() => {
     if (!history) return [];
@@ -68,13 +67,6 @@ export function ProgressHistoryScreen({ route }: Props) {
           </Text>
         </View>
       )}
-
-      {skillKey ? (
-        <View className="mb-6">
-          <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Paliers</Text>
-          <SkillMilestoneBadges skillKey={skillKey} logs={history ?? []} />
-        </View>
-      ) : null}
 
       {chartPoints.length > 1 ? (
         <View className="mb-6">

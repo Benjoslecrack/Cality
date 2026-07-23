@@ -53,7 +53,10 @@ export function isCriterionSatisfiedByLog(criterion: TierCriterion, log: Rankabl
 
 // Un palier est satisfait si AU MOINS UN de ses critères (OU) est satisfait
 // par AU MOINS UN log historique (OU) — ex. "traction lestée ou archer".
-export function isTierSatisfied(tier: SkillTierWithCriteria, logs: RankableLog[]): boolean {
+// Générique sur T (au lieu de fixé à SkillTierWithCriteria) : un appelant qui
+// passe des paliers enrichis (ex. avec un `label`, cf. SkillTierDetail) les
+// récupère avec ce même enrichissement en retour, sans cast.
+export function isTierSatisfied<T extends SkillTierWithCriteria>(tier: T, logs: RankableLog[]): boolean {
   return tier.criteria.some((criterion) => logs.some((log) => isCriterionSatisfiedByLog(criterion, log)));
 }
 
@@ -61,11 +64,11 @@ export function isTierSatisfied(tier: SkillTierWithCriteria, logs: RankableLog[]
 // nouveau log) : une première performance qui dépasse un seuil élevé peut
 // valider plusieurs paliers d'un coup (15s de front lever complet valide
 // aussi le seuil 10s), ce qui est le comportement souhaité.
-export function findNewlyUnlockedTiers(
-  tiers: SkillTierWithCriteria[],
+export function findNewlyUnlockedTiers<T extends SkillTierWithCriteria>(
+  tiers: T[],
   logs: RankableLog[],
   alreadyUnlockedTierIds: ReadonlySet<string>
-): SkillTierWithCriteria[] {
+): T[] {
   return tiers.filter((tier) => !alreadyUnlockedTierIds.has(tier.id) && isTierSatisfied(tier, logs));
 }
 
@@ -76,11 +79,22 @@ export function currentRank(unlockedRanks: SkillRank[]): SkillRank | null {
   return unlockedRanks.reduce((highest, rank) => (isHigherRank(rank, highest) ? rank : highest));
 }
 
+// Premier palier non débloqué, dans l'ordre Fer -> Maître : la "prochaine
+// étape" mise en avant sur la carte/l'écran détail. null si Maître est déjà
+// atteint.
+export function nextLockedTier<T extends SkillTierWithCriteria>(
+  tiers: T[],
+  unlockedTierIds: ReadonlySet<string>
+): T | null {
+  const sorted = [...tiers].sort((a, b) => rankIndex(a.rank) - rankIndex(b.rank));
+  return sorted.find((tier) => !unlockedTierIds.has(tier.id)) ?? null;
+}
+
 // Progression (0 à 1) vers un palier non encore débloqué : pour un critère
 // numérique, ratio meilleure valeur historique / seuil ; pour un critère
 // variant pur, 0 ou 1 (pas de mi-chemin possible). Un palier à critères
 // multiples (OU) prend le chemin le plus avancé.
-export function tierProgress(tier: SkillTierWithCriteria, logs: RankableLog[]): number {
+export function tierProgress<T extends SkillTierWithCriteria>(tier: T, logs: RankableLog[]): number {
   if (tier.criteria.length === 0) return 0;
   return Math.max(...tier.criteria.map((criterion) => criterionProgress(criterion, logs)));
 }

@@ -7,11 +7,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { buildExerciseLogsCsv, type ExerciseLogExportRow } from '../lib/csvExport';
 import { buildProgressSummaryHtml, type SkillSummary } from '../lib/pdfExport';
 import { progressPoint } from '../lib/progressValue';
-import { SKILL_MILESTONES, type MilestoneLogInput } from '../lib/skillMilestones';
-import { SKILLS } from '../lib/skills';
+import { RANK_LABELS } from '../lib/rankPresentation';
+import { currentRank } from '../lib/skillRanks';
 import { todayDateKey } from '../lib/dateUtils';
 import { aggregateWeeklyBest } from '../lib/weeklyAggregate';
-import type { SkillKey } from '../types/database';
+import type { ExerciseType, SkillRank } from '../types/database';
 
 async function shareFile(uri: string, mimeType: string, dialogTitle: string) {
   const canShare = await Sharing.isAvailableAsync();
@@ -35,6 +35,18 @@ function asWritableFile(file: File): WritableFile {
   return file as unknown as WritableFile;
 }
 
+type RawExerciseLogExportRow = {
+  exercise_name: string;
+  type: ExerciseLogExportRow['type'];
+  set_number: number;
+  reps: number | null;
+  weight_kg: number | null;
+  hold_seconds: number | null;
+  progression_variant: string | null;
+  skills: { name: string } | null;
+  workout_logs: { performed_date: string; session_name: string; rpe: number | null } | null;
+};
+
 // Historique complet (pas de fenêtre glissante) : contrairement aux requêtes
 // d'écran, un export doit remonter jusqu'à la toute première série loggée.
 export function useExportLogsCsv() {
@@ -45,13 +57,25 @@ export function useExportLogsCsv() {
     mutationFn: async () => {
       const { data, error } = await supabase
         .from('exercise_logs')
-        .select('*, workout_logs(performed_date, session_name, rpe)')
+        .select('*, workout_logs(performed_date, session_name, rpe), skills(name)')
         .eq('user_id', userId!)
         .order('created_at', { ascending: true })
-        .returns<ExerciseLogExportRow[]>();
+        .returns<RawExerciseLogExportRow[]>();
       if (error) throw error;
 
-      const csv = buildExerciseLogsCsv(data);
+      const rows: ExerciseLogExportRow[] = data.map((row) => ({
+        exercise_name: row.exercise_name,
+        type: row.type,
+        skill_name: row.skills?.name ?? null,
+        set_number: row.set_number,
+        reps: row.reps,
+        weight_kg: row.weight_kg,
+        hold_seconds: row.hold_seconds,
+        progression_variant: row.progression_variant,
+        workout_logs: row.workout_logs,
+      }));
+
+      const csv = buildExerciseLogsCsv(rows);
       const file = asWritableFile(new File(Paths.cache, `cality-historique-${todayDateKey()}.csv`));
       if (file.exists) file.delete();
       file.create();
@@ -62,42 +86,78 @@ export function useExportLogsCsv() {
   });
 }
 
-type SkillLogRow = MilestoneLogInput & {
-  skill_key: SkillKey | null;
+type RawSkillRow = { id: string; name: string; position: number; skill_tiers: { id: string; rank: SkillRank }[] };
+
+type SkillLogRow = {
+  skill_id: string | null;
+  type: ExerciseType;
+  reps: number | null;
+  weight_kg: number | null;
+  hold_seconds: number | null;
+  progression_variant: string | null;
   workout_logs: { performed_date: string } | null;
 };
 
 // Résumé par skill suivi : même logique que l'écran Skills (record le plus
-// récent, paliers débloqués, tendance 3 mois) — le PDF ne recalcule rien de
-// nouveau, il réutilise exactement ces fonctions.
+// récent, rang courant, tendance 3 mois) — le PDF ne recalcule rien de
+// nouveau, il réutilise les mêmes données (user_skill_progress) et fonctions
+// (currentRank, aggregateWeeklyBest).
 export function useExportProgressPdf() {
   const { session } = useAuth();
   const userId = session?.user.id;
 
   return useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase
+      const { data: skills, error: skillsError } = await supabase
+        .from('skills')
+        .select('id, name, position, skill_tiers(id, rank)')
+        .order('position', { ascending: true })
+        .returns<RawSkillRow[]>();
+      if (skillsError) throw skillsError;
+
+      // Pas de filtre "skill_id is not null" côté serveur : combiner .not()
+      // avec un select imbriqué (workout_logs(...)) fait dégénérer le type
+      // inféré en `never` côté supabase-js/PostgREST (limite du typage de la
+      // lib, pas un choix). Sans incidence fonctionnelle : le regroupement
+      // par skill ci-dessous exclut déjà naturellement les lignes sans skill.
+      const { data: logs, error: logsError } = await supabase
         .from('exercise_logs')
-        .select('*, workout_logs(performed_date)')
+        .select('skill_id, type, reps, weight_kg, hold_seconds, progression_variant, workout_logs(performed_date)')
         .eq('user_id', userId!)
         .returns<SkillLogRow[]>();
-      if (error) throw error;
+      if (logsError) throw logsError;
 
-      const summaries: SkillSummary[] = SKILLS.map((skill) => {
-        const logs = data.filter((entry) => entry.skill_key === skill.key);
-        const points = logs
+      const { data: progress, error: progressError } = await supabase
+        .from('user_skill_progress')
+        .select('skill_id, skill_tier_id')
+        .eq('user_id', userId!);
+      if (progressError) throw progressError;
+
+      const unlockedTierIdsBySkill = new Map<string, Set<string>>();
+      for (const row of progress) {
+        if (!unlockedTierIdsBySkill.has(row.skill_id)) unlockedTierIdsBySkill.set(row.skill_id, new Set());
+        unlockedTierIdsBySkill.get(row.skill_id)!.add(row.skill_tier_id);
+      }
+
+      const summaries: SkillSummary[] = skills.map((skill) => {
+        const skillLogs = logs.filter((entry) => entry.skill_id === skill.id);
+        const points = skillLogs
           .map((entry) => progressPoint(entry))
           .filter((point): point is { value: number; unit: string } => point !== null);
         const latest = points[points.length - 1] ?? null;
-        const weeklyTrend = aggregateWeeklyBest(logs, 3);
-        const milestones = SKILL_MILESTONES[skill.key];
+        const weeklyTrend = aggregateWeeklyBest(skillLogs, 3);
+
+        const unlockedTierIds = unlockedTierIdsBySkill.get(skill.id) ?? new Set<string>();
+        const unlockedRanks = skill.skill_tiers.filter((tier) => unlockedTierIds.has(tier.id)).map((tier) => tier.rank);
+        const rank = currentRank(unlockedRanks);
 
         return {
-          label: skill.label,
+          label: skill.name,
           latest,
           weeklyTrend,
-          unlockedCount: milestones.filter((m) => m.check(logs)).length,
-          totalMilestones: milestones.length,
+          rankLabel: rank ? RANK_LABELS[rank] : null,
+          unlockedCount: unlockedTierIds.size,
+          totalMilestones: skill.skill_tiers.length,
         };
       });
 

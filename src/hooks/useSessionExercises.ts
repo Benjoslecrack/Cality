@@ -6,7 +6,10 @@ import type { ExerciseType, SkillKey } from '../types/database';
 export type SessionExerciseInput = {
   name: string;
   type: ExerciseType;
-  skill_key: SkillKey | null;
+  // Conservé pour compatibilité avec les lignes existantes ; le picker de
+  // skill (ExerciseFormScreen) ne le renseigne plus, seul skill_id l'est.
+  skill_key?: SkillKey | null;
+  skill_id: string | null;
   target_sets: number;
   target_reps: number | null;
   target_weight_kg: number | null;

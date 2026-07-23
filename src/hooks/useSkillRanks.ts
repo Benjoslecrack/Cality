@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { findNewlyUnlockedTiers, RANK_ORDER, type RankableLog, type SkillTierWithCriteria } from '../lib/skillRanks';
-import type { SkillCriterionType, SkillRank } from '../types/database';
+import type { ExerciseType, SkillCriterionType, SkillRank } from '../types/database';
 
 export type SkillTierDetail = SkillTierWithCriteria & { label: string };
 
@@ -143,11 +143,19 @@ export function useToggleSkillSelection() {
   });
 }
 
-export type SkillLogEntry = RankableLog & { id: string; createdAt: string; performedDate: string | null };
+export type SkillLogEntry = RankableLog & {
+  id: string;
+  type: ExerciseType;
+  weight_kg: number | null;
+  createdAt: string;
+  performedDate: string | null;
+};
 
 type RawSkillLogRow = {
   id: string;
+  type: ExerciseType;
   reps: number | null;
+  weight_kg: number | null;
   hold_seconds: number | null;
   progression_variant: string | null;
   created_at: string;
@@ -155,6 +163,8 @@ type RawSkillLogRow = {
 };
 
 // Historique complet d'un skill (pour l'écran détail : liste + tendance).
+// `type`/`weight_kg` sont inclus pour pouvoir réutiliser progressPoint/
+// formatSetValue tels quels, sans dupliquer leur logique ici.
 export function useSkillLogsQuery(skillId: string | null) {
   const { session } = useAuth();
   const userId = session?.user.id;
@@ -165,7 +175,7 @@ export function useSkillLogsQuery(skillId: string | null) {
     queryFn: async (): Promise<SkillLogEntry[]> => {
       const { data, error } = await supabase
         .from('exercise_logs')
-        .select('id, reps, hold_seconds, progression_variant, created_at, workout_logs(performed_date)')
+        .select('id, type, reps, weight_kg, hold_seconds, progression_variant, created_at, workout_logs(performed_date)')
         .eq('user_id', userId!)
         .eq('skill_id', skillId!)
         .order('created_at', { ascending: true })
@@ -174,7 +184,9 @@ export function useSkillLogsQuery(skillId: string | null) {
 
       return data.map((row) => ({
         id: row.id,
+        type: row.type,
         reps: row.reps,
+        weight_kg: row.weight_kg,
         hold_seconds: row.hold_seconds,
         progression_variant: row.progression_variant,
         createdAt: row.created_at,

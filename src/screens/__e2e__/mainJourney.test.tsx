@@ -31,8 +31,7 @@ import { supabase } from '../../lib/supabase';
 import { AuthProvider, useAuth } from '../../contexts/AuthContext';
 import { useCreateCalendarEntry, useTodayEntriesQuery } from '../../hooks/useCalendarEntries';
 import { useCreateWorkoutLog } from '../../hooks/useWorkoutLogs';
-import { useAddExerciseSet } from '../../hooks/useExerciseLogs';
-import { useProgressHistoryQuery } from '../../hooks/useProgressHistory';
+import { useAddExerciseSet, useExerciseLogsQuery } from '../../hooks/useExerciseLogs';
 import { todayDateKey } from '../../lib/dateUtils';
 
 const fakeDb = (supabase as unknown as { _db: Record<string, any[]> })._db;
@@ -46,7 +45,7 @@ function JourneyHarness({ onSessionReady }: { onSessionReady: (userId: string) =
   const todayEntries = useTodayEntriesQuery();
   const { createWorkoutLog } = useCreateWorkoutLog();
   const addSet = useAddExerciseSet(workoutLogId ?? '');
-  const progressHistory = useProgressHistoryQuery({ skillKey: 'pull_up' });
+  const progressHistory = useExerciseLogsQuery(workoutLogId ?? '');
 
   useEffect(() => {
     if (session) onSessionReady(session.user.id);

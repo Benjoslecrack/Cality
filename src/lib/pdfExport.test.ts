@@ -10,18 +10,25 @@ function summary(overrides: Partial<SkillSummary> = {}): SkillSummary {
       { label: '13/07', value: 8 },
       { label: '20/07', value: 12 },
     ],
+    rankLabel: 'Argent',
     unlockedCount: 2,
-    totalMilestones: 4,
+    totalMilestones: 5,
     ...overrides,
   };
 }
 
 describe('buildProgressSummaryHtml', () => {
-  it('inclut le libellé du skill, le record et les paliers débloqués', () => {
+  it('inclut le libellé du skill, le record, le rang et les paliers débloqués', () => {
     const html = buildProgressSummaryHtml([summary()], FIXED_DATE);
     expect(html).toContain('Tractions');
     expect(html).toContain('12 reps');
-    expect(html).toContain('2/4');
+    expect(html).toContain('Argent');
+    expect(html).toContain('2/5');
+  });
+
+  it("affiche un tiret quand aucun rang n'est encore débloqué", () => {
+    const html = buildProgressSummaryHtml([summary({ rankLabel: null })], FIXED_DATE);
+    expect(html).toContain('—');
   });
 
   it('affiche la date de génération en français', () => {

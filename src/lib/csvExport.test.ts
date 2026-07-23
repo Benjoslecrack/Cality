@@ -4,7 +4,7 @@ function row(overrides: Partial<ExerciseLogExportRow> = {}): ExerciseLogExportRo
   return {
     exercise_name: 'Tractions',
     type: 'progression',
-    skill_key: 'pull_up',
+    skill_name: 'Tractions (skill)',
     set_number: 1,
     reps: 10,
     weight_kg: null,
@@ -20,7 +20,7 @@ describe('buildExerciseLogsCsv', () => {
     const csv = buildExerciseLogsCsv([row()]);
     const [header, line] = csv.split('\n');
     expect(header).toBe('date;séance;exercice;skill;type;série;reps;charge_kg;maintien_s;variante;rpe');
-    expect(line).toBe('2026-07-20;Push Day;Tractions;pull_up;progression;1;10;;;;7');
+    expect(line).toBe('2026-07-20;Push Day;Tractions;Tractions (skill);progression;1;10;;;;7');
   });
 
   it('produit une ligne par entrée, dans l\'ordre donné', () => {
@@ -37,7 +37,7 @@ describe('buildExerciseLogsCsv', () => {
   it('gère une série sans workout_logs (donnée orpheline) sans planter', () => {
     const csv = buildExerciseLogsCsv([row({ workout_logs: null })]);
     const line = csv.split('\n')[1];
-    expect(line).toBe(';;Tractions;pull_up;progression;1;10;;;;');
+    expect(line).toBe(';;Tractions;Tractions (skill);progression;1;10;;;;');
   });
 
   it('échappe les valeurs contenant le séparateur ou des guillemets', () => {

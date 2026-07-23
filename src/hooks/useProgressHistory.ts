@@ -1,35 +1,28 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import type { Database, SkillKey } from '../types/database';
+import type { Database } from '../types/database';
 
 export type ProgressLogEntry = Database['public']['Tables']['exercise_logs']['Row'] & {
   workout_logs: { performed_date: string } | null;
 };
 
-type Filter = { skillKey: SkillKey } | { sessionExerciseId: string };
-
-// Historique chronologique des séries loggées, pour un skill suivi (toutes
-// variantes/exercices confondus) ou pour un exercice précis d'un programme.
-export function useProgressHistoryQuery(filter: Filter) {
+// Historique chronologique des séries loggées pour un exercice précis d'un
+// programme (le suivi par skill passe désormais par useSkillLogsQuery, cf.
+// useSkillRanks.ts).
+export function useProgressHistoryQuery(filter: { sessionExerciseId: string }) {
   const { session } = useAuth();
   const userId = session?.user.id;
-  const key = 'skillKey' in filter ? ['skill', filter.skillKey] : ['exercise', filter.sessionExerciseId];
 
   return useQuery({
-    queryKey: ['progress_history', ...key, userId],
+    queryKey: ['progress_history', 'exercise', filter.sessionExerciseId, userId],
     enabled: !!userId,
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('exercise_logs')
         .select('*, workout_logs(performed_date)')
-        .eq('user_id', userId!);
-
-      query = 'skillKey' in filter
-        ? query.eq('skill_key', filter.skillKey)
-        : query.eq('session_exercise_id', filter.sessionExerciseId);
-
-      const { data, error } = await query
+        .eq('user_id', userId!)
+        .eq('session_exercise_id', filter.sessionExerciseId)
         .order('performed_date', { referencedTable: 'workout_logs', ascending: true })
         .returns<ProgressLogEntry[]>();
       if (error) throw error;
@@ -39,8 +32,7 @@ export function useProgressHistoryQuery(filter: Filter) {
 }
 
 // Toutes les séries loggées sur les N derniers mois, tous exercices/skills
-// confondus : sert au volume d'entraînement hebdomadaire (Skills) et à la
-// tendance 3 mois par skill (filtrée ensuite côté client par skill_key).
+// confondus : sert au volume d'entraînement hebdomadaire (Skills).
 export function useAllExerciseLogsQuery(months = 3) {
   const { session } = useAuth();
   const userId = session?.user.id;

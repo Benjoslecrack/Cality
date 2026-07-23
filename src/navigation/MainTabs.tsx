@@ -1,17 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { COLORS } from '../theme/tokens';
 import { CalendarStack } from './CalendarStack';
 import { ProgramsStack } from './ProgramsStack';
-import { SkillsStack } from './SkillsStack';
+import { SkillsStack, type SkillsStackParamList } from './SkillsStack';
 import { TodayStack } from './TodayStack';
 
 export type MainTabParamList = {
   Today: undefined;
   Calendar: undefined;
   Programs: undefined;
-  Skills: undefined;
+  // NavigatorScreenParams : permet de naviguer depuis Profil directement vers
+  // un écran précis de l'onglet Skills (ex. la sélection des skills actifs).
+  Skills: NavigatorScreenParams<SkillsStackParamList> | undefined;
   Profile: undefined;
 };
 

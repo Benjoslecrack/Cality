@@ -170,6 +170,7 @@ export function useDuplicateProgram() {
               name: exercise.name,
               type: exercise.type,
               skill_key: exercise.skill_key,
+              skill_id: exercise.skill_id,
               position: exercise.position,
               target_sets: exercise.target_sets,
               target_reps: exercise.target_reps,

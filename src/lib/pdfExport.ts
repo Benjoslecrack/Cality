@@ -4,6 +4,7 @@ export type SkillSummary = {
   label: string;
   latest: { value: number; unit: string } | null;
   weeklyTrend: { label: string; value: number }[];
+  rankLabel: string | null;
   unlockedCount: number;
   totalMilestones: number;
 };
@@ -43,6 +44,10 @@ function skillSectionHtml(summary: SkillSummary): string {
         <div class="stat">
           <div class="stat-label">Record</div>
           <div class="stat-value">${summary.latest ? `${summary.latest.value} ${escapeHtml(summary.latest.unit)}` : '—'}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Rang</div>
+          <div class="stat-value">${summary.rankLabel ? escapeHtml(summary.rankLabel) : '—'}</div>
         </div>
         <div class="stat">
           <div class="stat-label">Paliers débloqués</div>

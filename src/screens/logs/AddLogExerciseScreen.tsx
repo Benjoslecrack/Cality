@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
+import { useSkillCatalogQuery } from '../../hooks/useSkillRanks';
 import { EXERCISE_TYPE_LABELS } from '../../lib/exerciseFormat';
-import { SKILLS } from '../../lib/skills';
-import type { ExerciseType, SkillKey } from '../../types/database';
+import type { ExerciseType } from '../../types/database';
 
 const EXERCISE_TYPES: ExerciseType[] = ['reps_weight', 'isometric', 'progression'];
 
@@ -18,8 +18,8 @@ type Props = {
         sessionExerciseId: null;
         exerciseName: string;
         type: ExerciseType;
-        skillKey: SkillKey | null;
-        skillId: null;
+        skillKey: null;
+        skillId: string | null;
       }
     ) => void;
   };
@@ -32,7 +32,8 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
   const { workoutLogId } = route.params;
   const [name, setName] = useState('');
   const [type, setType] = useState<ExerciseType>('reps_weight');
-  const [skillKey, setSkillKey] = useState<SkillKey | null>(null);
+  const [skillId, setSkillId] = useState<string | null>(null);
+  const { data: catalog } = useSkillCatalogQuery();
 
   const handleContinue = () => {
     if (!name.trim()) {
@@ -44,8 +45,8 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
       sessionExerciseId: null,
       exerciseName: name.trim(),
       type,
-      skillKey,
-      skillId: null,
+      skillKey: null,
+      skillId,
     });
   };
 
@@ -73,22 +74,22 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
       <Text className="mb-1.5 text-sm font-medium text-textMuted">Rattacher à un skill suivi (optionnel)</Text>
       <View className="mb-6 flex-row flex-wrap gap-2">
         <Pressable
-          onPress={() => setSkillKey(null)}
+          onPress={() => setSkillId(null)}
           className={`rounded-full border px-4 py-2 ${
-            skillKey === null ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
+            skillId === null ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
           }`}
         >
-          <Text className={skillKey === null ? 'font-medium text-text' : 'text-textMuted'}>Aucun</Text>
+          <Text className={skillId === null ? 'font-medium text-text' : 'text-textMuted'}>Aucun</Text>
         </Pressable>
-        {SKILLS.map((skill) => (
+        {(catalog ?? []).map((skill) => (
           <Pressable
-            key={skill.key}
-            onPress={() => setSkillKey(skill.key)}
+            key={skill.id}
+            onPress={() => setSkillId(skill.id)}
             className={`rounded-full border px-4 py-2 ${
-              skillKey === skill.key ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
+              skillId === skill.id ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
             }`}
           >
-            <Text className={skillKey === skill.key ? 'font-medium text-text' : 'text-textMuted'}>{skill.label}</Text>
+            <Text className={skillId === skill.id ? 'font-medium text-text' : 'text-textMuted'}>{skill.name}</Text>
           </Pressable>
         ))}
       </View>

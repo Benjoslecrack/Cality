@@ -1,9 +1,9 @@
-import type { ExerciseType, SkillKey } from '../types/database';
+import type { ExerciseType } from '../types/database';
 
 export type ExerciseLogExportRow = {
   exercise_name: string;
   type: ExerciseType;
-  skill_key: SkillKey | null;
+  skill_name: string | null;
   set_number: number;
   reps: number | null;
   weight_kg: number | null;
@@ -47,7 +47,7 @@ export function buildExerciseLogsCsv(rows: ExerciseLogExportRow[]): string {
         row.workout_logs?.performed_date ?? '',
         row.workout_logs?.session_name ?? '',
         row.exercise_name,
-        row.skill_key ?? '',
+        row.skill_name ?? '',
         row.type,
         row.set_number,
         row.reps,

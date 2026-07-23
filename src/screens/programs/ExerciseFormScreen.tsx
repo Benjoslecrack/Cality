@@ -10,10 +10,10 @@ import {
   useDeleteSessionExercise,
   useUpdateSessionExercise,
 } from '../../hooks/useSessionExercises';
+import { useSkillCatalogQuery } from '../../hooks/useSkillRanks';
 import { EXERCISE_TYPE_LABELS } from '../../lib/exerciseFormat';
-import { SKILLS } from '../../lib/skills';
 import type { ProgramsStackParamList } from '../../navigation/ProgramsStack';
-import type { ExerciseType, SkillKey } from '../../types/database';
+import type { ExerciseType } from '../../types/database';
 
 type Props = NativeStackScreenProps<ProgramsStackParamList, 'ExerciseForm'>;
 
@@ -25,7 +25,8 @@ export function ExerciseFormScreen({ navigation, route }: Props) {
 
   const [name, setName] = useState(initialValues?.name ?? '');
   const [type, setType] = useState<ExerciseType>(initialValues?.type ?? 'reps_weight');
-  const [skillKey, setSkillKey] = useState<SkillKey | null>(initialValues?.skill_key ?? null);
+  const [skillId, setSkillId] = useState<string | null>(initialValues?.skill_id ?? null);
+  const { data: catalog } = useSkillCatalogQuery();
   const [targetSets, setTargetSets] = useState(String(initialValues?.target_sets ?? 3));
   const [targetReps, setTargetReps] = useState(
     initialValues?.target_reps != null ? String(initialValues.target_reps) : ''
@@ -59,7 +60,7 @@ export function ExerciseFormScreen({ navigation, route }: Props) {
     const input = {
       name: name.trim(),
       type,
-      skill_key: skillKey,
+      skill_id: skillId,
       target_sets: sets,
       target_reps: type === 'reps_weight' && targetReps ? parseInt(targetReps, 10) : null,
       target_weight_kg: type === 'reps_weight' && targetWeight ? parseFloat(targetWeight) : null,
@@ -178,23 +179,23 @@ export function ExerciseFormScreen({ navigation, route }: Props) {
         </Text>
         <View className="mb-4 flex-row flex-wrap gap-2">
           <Pressable
-            onPress={() => setSkillKey(null)}
+            onPress={() => setSkillId(null)}
             className={`rounded-full border px-4 py-2 ${
-              skillKey === null ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
+              skillId === null ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
             }`}
           >
-            <Text className={skillKey === null ? 'font-medium text-text' : 'text-textMuted'}>Aucun</Text>
+            <Text className={skillId === null ? 'font-medium text-text' : 'text-textMuted'}>Aucun</Text>
           </Pressable>
-          {SKILLS.map((skill) => (
+          {(catalog ?? []).map((skill) => (
             <Pressable
-              key={skill.key}
-              onPress={() => setSkillKey(skill.key)}
+              key={skill.id}
+              onPress={() => setSkillId(skill.id)}
               className={`rounded-full border px-4 py-2 ${
-                skillKey === skill.key ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
+                skillId === skill.id ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
               }`}
             >
-              <Text className={skillKey === skill.key ? 'font-medium text-text' : 'text-textMuted'}>
-                {skill.label}
+              <Text className={skillId === skill.id ? 'font-medium text-text' : 'text-textMuted'}>
+                {skill.name}
               </Text>
             </Pressable>
           ))}

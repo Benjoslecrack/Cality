@@ -5,12 +5,14 @@ import { Stepper } from '../../components/Stepper';
 import { TextField } from '../../components/TextField';
 import { useRestTimer } from '../../contexts/RestTimerContext';
 import { useAddExerciseSet } from '../../hooks/useExerciseLogs';
+import { useSkillCatalogQuery } from '../../hooks/useSkillRanks';
 import { useSuggestedSet } from '../../hooks/useSuggestedSet';
 import { isDataConflictError } from '../../lib/queryClient';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget, formatSetValue } from '../../lib/exerciseFormat';
-import { skillLabel } from '../../lib/skills';
+import { RANK_COLORS, RANK_LABELS } from '../../lib/rankPresentation';
+import { isHigherRank } from '../../lib/skillRanks';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
-import type { ExerciseType, SkillKey } from '../../types/database';
+import type { ExerciseType, SkillKey, SkillRank } from '../../types/database';
 
 export type ExerciseCardData = {
   key: string;
@@ -50,12 +52,15 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
   const lastSet = card.sets[card.sets.length - 1];
   const isFirstSetOfSession = card.sets.length === 0;
   const { data: suggestion } = useSuggestedSet(card.sessionExerciseId, card.name, card.type);
+  const { data: catalog } = useSkillCatalogQuery();
+  const skillName = card.skillId ? catalog?.find((s) => s.id === card.skillId)?.name : null;
 
   const [reps, setReps] = useState(lastSet?.reps ?? card.target?.target_reps ?? 8);
   const [weight, setWeight] = useState(lastSet?.weight_kg ?? card.target?.target_weight_kg ?? 20);
   const [hold, setHold] = useState(lastSet?.hold_seconds ?? card.target?.target_hold_seconds ?? 20);
   const [variant, setVariant] = useState(lastSet?.progression_variant ?? card.target?.progression_variant ?? '');
   const [showRecordFlash, setShowRecordFlash] = useState(false);
+  const [rankUp, setRankUp] = useState<SkillRank | null>(null);
 
   // Suggestion éditable pour la toute première série de l'exercice dans cette
   // séance (au-delà, on reprend simplement la série précédente de la séance
@@ -92,10 +97,15 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
         progression_variant: card.type === 'progression' ? variant.trim() || null : null,
       },
       {
-        onSuccess: ({ isNewRecord }) => {
+        onSuccess: ({ isNewRecord, newlyUnlockedTiers }) => {
           if (isNewRecord) {
             setShowRecordFlash(true);
             setTimeout(() => setShowRecordFlash(false), 2600);
+          }
+          if (newlyUnlockedTiers.length > 0) {
+            const highest = newlyUnlockedTiers.reduce((top, tier) => (isHigherRank(tier.rank, top.rank) ? tier : top));
+            setRankUp(highest.rank);
+            setTimeout(() => setRankUp(null), 2600);
           }
         },
         onError: (error) => {
@@ -109,9 +119,9 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
     <View style={CARD_SHADOW} className="rounded-2xl bg-surface p-4">
       <View className="flex-row items-center justify-between">
         <Text className="font-bodySemibold text-base text-text">{card.name}</Text>
-        {card.skillKey ? (
+        {skillName ? (
           <View className="rounded-full border border-accent bg-accentDim/40 px-2.5 py-0.5">
-            <Text className="font-bodyMedium text-xs text-text">{skillLabel(card.skillKey)}</Text>
+            <Text className="font-bodyMedium text-xs text-text">{skillName}</Text>
           </View>
         ) : null}
       </View>
@@ -172,6 +182,15 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
         <View className="mt-3">
           <Text className="mb-1.5 font-bodySemibold text-sm text-accent">Nouveau record</Text>
           <SteelBar progress={1} justRecorded />
+        </View>
+      ) : null}
+
+      {rankUp ? (
+        <View className="mt-3">
+          <Text className="mb-1.5 font-bodySemibold text-sm" style={{ color: RANK_COLORS[rankUp] }}>
+            Nouveau rang : {RANK_LABELS[rankUp]}
+          </Text>
+          <SteelBar progress={1} justRanked fillColors={[COLORS.textMuted, RANK_COLORS[rankUp]]} />
         </View>
       ) : null}
     </View>

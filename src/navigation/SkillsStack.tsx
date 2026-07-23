@@ -1,13 +1,14 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SkillsListScreen } from '../screens/skills/SkillsListScreen';
-import { ProgressHistoryScreen } from '../screens/progress/ProgressHistoryScreen';
+import { SkillDetailScreen } from '../screens/skills/SkillDetailScreen';
+import { SkillSelectionScreen } from '../screens/skills/SkillSelectionScreen';
 import { PhotoTimelineScreen } from '../screens/progress/PhotoTimelineScreen';
 import { AddProgressPhotoScreen } from '../screens/progress/AddProgressPhotoScreen';
-import type { SkillKey } from '../types/database';
 
 export type SkillsStackParamList = {
   SkillsList: undefined;
-  SkillDetail: { skillKey: SkillKey; title: string };
+  SkillDetail: { skillId: string; title: string };
+  SkillSelection: undefined;
   PhotoTimeline: undefined;
   AddProgressPhoto: undefined;
 };
@@ -27,9 +28,10 @@ export function SkillsStack() {
       <Stack.Screen name="SkillsList" component={SkillsListScreen} options={{ title: 'Skills' }} />
       <Stack.Screen
         name="SkillDetail"
-        component={ProgressHistoryScreen}
+        component={SkillDetailScreen}
         options={({ route }) => ({ title: route.params.title })}
       />
+      <Stack.Screen name="SkillSelection" component={SkillSelectionScreen} options={{ title: 'Mes skills actifs' }} />
       <Stack.Screen name="PhotoTimeline" component={PhotoTimelineScreen} options={{ title: 'Photos de progression' }} />
       <Stack.Screen
         name="AddProgressPhoto"

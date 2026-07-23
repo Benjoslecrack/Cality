@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { Button } from '../components/Button';
 import { TextField } from '../components/TextField';
 import { useAuth } from '../contexts/AuthContext';
 import { useExportLogsCsv, useExportProgressPdf } from '../hooks/useDataExport';
 import { useProfile, useUpdateProfile } from '../hooks/useProfile';
-import { SKILLS } from '../lib/skills';
-import type { SkillKey } from '../types/database';
+import type { MainTabParamList } from '../navigation/MainTabs';
 
-export function ProfileScreen() {
+type Props = BottomTabScreenProps<MainTabParamList, 'Profile'>;
+
+export function ProfileScreen({ navigation }: Props) {
   const { session, signOut } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
@@ -16,27 +18,18 @@ export function ProfileScreen() {
   const exportPdf = useExportProgressPdf();
 
   const [username, setUsername] = useState('');
-  const [goals, setGoals] = useState<SkillKey[]>([]);
 
   useEffect(() => {
     if (profile) {
       setUsername(profile.username ?? '');
-      setGoals(profile.goals ?? []);
     }
   }, [profile]);
 
-  const toggleGoal = (key: SkillKey) => {
-    setGoals((current) =>
-      current.includes(key) ? current.filter((goal) => goal !== key) : [...current, key]
-    );
-  };
-
-  const hasChanges =
-    profile && (username !== (profile.username ?? '') || JSON.stringify(goals) !== JSON.stringify(profile.goals ?? []));
+  const hasChanges = profile && username !== (profile.username ?? '');
 
   const handleSave = () => {
     updateProfile.mutate(
-      { username: username.trim(), goals },
+      { username: username.trim() },
       {
         onError: (error) => Alert.alert('Erreur', (error as Error).message),
       }
@@ -70,30 +63,21 @@ export function ProfileScreen() {
 
       <TextField label="Pseudo" value={username} onChangeText={setUsername} placeholder="Ton pseudo" />
 
-      <Text className="mb-3 mt-2 text-sm font-medium text-textMuted">Objectifs actuels</Text>
-      <View className="mb-8 flex-row flex-wrap gap-2">
-        {SKILLS.map((skill) => {
-          const selected = goals.includes(skill.key);
-          return (
-            <Pressable
-              key={skill.key}
-              onPress={() => toggleGoal(skill.key)}
-              className={`rounded-full border px-4 py-2 ${
-                selected ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
-              }`}
-            >
-              <Text className={selected ? 'font-medium text-text' : 'text-textMuted'}>{skill.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
       <View className="mb-8">
         <Button
           label="Enregistrer"
           onPress={handleSave}
           loading={updateProfile.isPending}
           disabled={!hasChanges}
+        />
+      </View>
+
+      <Text className="mb-3 text-sm font-medium text-textMuted">Skills</Text>
+      <View className="mb-8">
+        <Button
+          label="Sélectionner mes skills actifs"
+          variant="secondary"
+          onPress={() => navigation.navigate('Skills', { screen: 'SkillSelection' })}
         />
       </View>
 
