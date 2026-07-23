@@ -38,7 +38,7 @@ export function CalendarMonthScreen({ navigation }: Props) {
           <Ionicons name="chevron-back" size={24} color={COLORS.textPrimary} />
         </Pressable>
         <Pressable onPress={() => setVisibleMonth(new Date())}>
-          <Text className="text-lg font-semibold capitalize text-text">{monthLabel(visibleMonth)}</Text>
+          <Text className="font-display text-xl capitalize text-text">{monthLabel(visibleMonth)}</Text>
         </Pressable>
         <Pressable onPress={() => setVisibleMonth((month) => addMonths(month, 1))} hitSlop={8}>
           <Ionicons name="chevron-forward" size={24} color={COLORS.textPrimary} />
@@ -48,7 +48,7 @@ export function CalendarMonthScreen({ navigation }: Props) {
       <View className="mb-2 flex-row">
         {weekdayLabels().map((label) => (
           <View key={label} className="flex-1 items-center">
-            <Text className="text-xs font-medium text-textMuted">{label}</Text>
+            <Text className="font-bodyMedium text-xs uppercase text-textMuted">{label}</Text>
           </View>
         ))}
       </View>
@@ -66,16 +66,20 @@ export function CalendarMonthScreen({ navigation }: Props) {
               className="aspect-square w-[14.28%] items-center justify-center"
             >
               <View
-                className={`h-10 w-10 items-center justify-center rounded-full ${
-                  isToday ? 'bg-primary' : ''
+                className={`h-10 w-10 items-center justify-center ${
+                  isToday ? 'border-2 border-accentDim bg-primary' : ''
                 }`}
               >
-                <Text className={`text-sm ${inMonth ? 'text-text' : 'text-textMuted opacity-40'} ${isToday ? 'font-bold text-white' : ''}`}>
+                <Text
+                  className={`font-mono text-sm ${inMonth ? 'text-text' : 'text-textMuted opacity-40'} ${
+                    isToday ? 'text-onAccent' : ''
+                  }`}
+                >
                   {date.getDate()}
                 </Text>
               </View>
               {entryCount > 0 ? (
-                <View className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
+                <View className="mt-1 h-1.5 w-1.5 bg-accentCyan" />
               ) : (
                 <View className="mt-1 h-1.5 w-1.5" />
               )}

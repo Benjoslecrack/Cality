@@ -54,8 +54,8 @@ export function DayDetailScreen({ navigation, route }: Props) {
         contentContainerClassName="px-6 py-6 gap-3"
         ListEmptyComponent={
           <View className="mt-16 items-center px-6">
-            <Text className="mb-2 text-lg font-semibold text-text">Aucune séance prévue</Text>
-            <Text className="text-center text-textMuted">
+            <Text className="mb-2 font-display text-xl text-text">Aucune séance prévue</Text>
+            <Text className="text-center font-body text-textMuted">
               Assigne une séance à ce jour avec le bouton + en haut à droite.
             </Text>
           </View>
