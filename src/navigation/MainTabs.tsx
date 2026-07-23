@@ -2,7 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ComingSoonScreen } from '../screens/ComingSoonScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { CalendarStack } from './CalendarStack';
 import { ProgramsStack } from './ProgramsStack';
+import { TodayStack } from './TodayStack';
 
 export type MainTabParamList = {
   Today: undefined;
@@ -14,12 +16,6 @@ export type MainTabParamList = {
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-function TodayScreen() {
-  return <ComingSoonScreen title="Aujourd'hui" />;
-}
-function CalendarScreen() {
-  return <ComingSoonScreen title="Calendrier" />;
-}
 function SkillsScreen() {
   return <ComingSoonScreen title="Skills" />;
 }
@@ -47,8 +43,8 @@ export function MainTabs() {
         ),
       })}
     >
-      <Tab.Screen name="Today" component={TodayScreen} options={{ title: "Aujourd'hui" }} />
-      <Tab.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Calendrier' }} />
+      <Tab.Screen name="Today" component={TodayStack} options={{ title: "Aujourd'hui", headerShown: false }} />
+      <Tab.Screen name="Calendar" component={CalendarStack} options={{ title: 'Calendrier', headerShown: false }} />
       <Tab.Screen name="Programs" component={ProgramsStack} options={{ title: 'Programmes', headerShown: false }} />
       <Tab.Screen name="Skills" component={SkillsScreen} options={{ title: 'Skills' }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil', headerShown: false }} />
