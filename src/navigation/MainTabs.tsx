@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { COLORS } from '../theme/tokens';
 import { CalendarStack } from './CalendarStack';
 import { ProgramsStack } from './ProgramsStack';
 import { SkillsStack } from './SkillsStack';
@@ -25,15 +27,30 @@ const ICONS: Record<keyof MainTabParamList, keyof typeof Ionicons.glyphMap> = {
 };
 
 export function MainTabs() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerStyle: { backgroundColor: '#0B0D10' },
-        headerTintColor: '#F5F6F7',
+        headerStyle: { backgroundColor: COLORS.bgBase },
+        headerTintColor: COLORS.textPrimary,
         headerShadowVisible: false,
-        tabBarStyle: { backgroundColor: '#16191D', borderTopColor: '#2A2F36' },
-        tabBarActiveTintColor: '#F2545B',
-        tabBarInactiveTintColor: '#9AA1AA',
+        tabBarStyle: {
+          marginHorizontal: 16,
+          marginBottom: insets.bottom + 12,
+          height: 64,
+          borderRadius: 32,
+          backgroundColor: COLORS.bgSurface,
+          borderTopWidth: 0,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.4,
+          shadowRadius: 14,
+          elevation: 8,
+        },
+        tabBarItemStyle: { height: 64, paddingVertical: 8 },
+        tabBarActiveTintColor: COLORS.accent,
+        tabBarInactiveTintColor: COLORS.textMuted,
         tabBarIcon: ({ color, size }) => (
           <Ionicons name={ICONS[route.name as keyof MainTabParamList]} color={color} size={size} />
         ),

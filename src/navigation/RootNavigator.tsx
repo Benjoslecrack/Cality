@@ -1,6 +1,7 @@
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { COLORS } from '../theme/tokens';
 import { AuthStack } from './AuthStack';
 import { MainTabs } from './MainTabs';
 
@@ -8,11 +9,11 @@ const navigationTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: '#0B0D10',
-    card: '#16191D',
-    border: '#2A2F36',
-    primary: '#F2545B',
-    text: '#F5F6F7',
+    background: COLORS.bgBase,
+    card: COLORS.bgSurface,
+    border: COLORS.bgSurface,
+    primary: COLORS.accent,
+    text: COLORS.textPrimary,
   },
 };
 
@@ -22,7 +23,7 @@ export function RootNavigator() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.accent} />
       </View>
     );
   }
