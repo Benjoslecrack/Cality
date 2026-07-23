@@ -5,6 +5,11 @@ export type ExerciseType = 'reps_weight' | 'isometric' | 'progression';
 export type CalendarStatus = 'planned' | 'done' | 'skipped';
 export type SkillKey = 'muscle_up' | 'hspu' | 'l_sit' | 'front_lever' | 'pull_up';
 
+// Système de rangs (v4) : catalogue de skills configurable en base, cf.
+// supabase/migrations/0005_skill_ranks.sql.
+export type SkillRank = 'iron' | 'bronze' | 'silver' | 'gold' | 'master';
+export type SkillCriterionType = 'hold_seconds' | 'reps' | 'variant';
+
 export interface Database {
   public: {
     Tables: {
@@ -79,6 +84,7 @@ export interface Database {
           name: string;
           type: ExerciseType;
           skill_key: SkillKey | null;
+          skill_id: string | null;
           position: number;
           target_sets: number;
           target_reps: number | null;
@@ -97,6 +103,7 @@ export interface Database {
           name: string;
           type: ExerciseType;
           skill_key?: SkillKey | null;
+          skill_id?: string | null;
           position?: number;
           target_sets?: number;
           target_reps?: number | null;
@@ -110,6 +117,7 @@ export interface Database {
           name?: string;
           type?: ExerciseType;
           skill_key?: SkillKey | null;
+          skill_id?: string | null;
           position?: number;
           target_sets?: number;
           target_reps?: number | null;
@@ -182,6 +190,7 @@ export interface Database {
           exercise_name: string;
           type: ExerciseType;
           skill_key: SkillKey | null;
+          skill_id: string | null;
           set_number: number;
           reps: number | null;
           weight_kg: number | null;
@@ -198,6 +207,7 @@ export interface Database {
           exercise_name: string;
           type: ExerciseType;
           skill_key?: SkillKey | null;
+          skill_id?: string | null;
           set_number?: number;
           reps?: number | null;
           weight_kg?: number | null;
@@ -231,6 +241,103 @@ export interface Database {
         Update: {
           taken_date?: string;
         };
+        Relationships: [];
+      };
+      skills: {
+        Row: {
+          id: string;
+          key: string;
+          name: string;
+          description: string | null;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          key: string;
+          name: string;
+          description?: string | null;
+          position?: number;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          position?: number;
+        };
+        Relationships: [];
+      };
+      skill_tiers: {
+        Row: {
+          id: string;
+          skill_id: string;
+          rank: SkillRank;
+          label: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          skill_id: string;
+          rank: SkillRank;
+          label: string;
+        };
+        Update: {
+          label?: string;
+        };
+        Relationships: [];
+      };
+      skill_tier_criteria: {
+        Row: {
+          id: string;
+          skill_tier_id: string;
+          criterion_type: SkillCriterionType;
+          threshold: number | null;
+          variant_match: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          skill_tier_id: string;
+          criterion_type: SkillCriterionType;
+          threshold?: number | null;
+          variant_match?: string | null;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      user_skill_progress: {
+        Row: {
+          id: string;
+          user_id: string;
+          skill_id: string;
+          skill_tier_id: string;
+          achieved_at: string;
+          exercise_log_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          skill_id: string;
+          skill_tier_id: string;
+          achieved_at?: string;
+          exercise_log_id?: string | null;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      user_skill_selection: {
+        Row: {
+          user_id: string;
+          skill_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          skill_id: string;
+        };
+        Update: Record<string, never>;
         Relationships: [];
       };
     };

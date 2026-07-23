@@ -19,6 +19,7 @@ type Props = {
         exerciseName: string;
         type: ExerciseType;
         skillKey: SkillKey | null;
+        skillId: null;
       }
     ) => void;
   };
@@ -44,6 +45,7 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
       exerciseName: name.trim(),
       type,
       skillKey,
+      skillId: null,
     });
   };
 

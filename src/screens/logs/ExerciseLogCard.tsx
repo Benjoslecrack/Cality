@@ -17,6 +17,7 @@ export type ExerciseCardData = {
   name: string;
   type: ExerciseType;
   skillKey: SkillKey | null;
+  skillId: string | null;
   sessionExerciseId: string | null;
   restSeconds: number;
   target?: {
@@ -84,6 +85,7 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
         exerciseName: card.name,
         type: card.type,
         skillKey: card.skillKey,
+        skillId: card.skillId,
         reps: card.type !== 'isometric' ? reps : null,
         weight_kg: card.type === 'reps_weight' ? weight : null,
         hold_seconds: card.type === 'isometric' ? hold : null,

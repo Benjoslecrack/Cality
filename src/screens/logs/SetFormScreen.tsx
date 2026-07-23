@@ -14,6 +14,7 @@ export type SetFormParams = {
   exerciseName: string;
   type: ExerciseType;
   skillKey: SkillKey | null;
+  skillId: string | null;
   setId?: string;
   initialValues?: {
     reps: number | null;
@@ -29,7 +30,7 @@ type Props = {
 };
 
 export function SetFormScreen({ navigation, route }: Props) {
-  const { workoutLogId, sessionExerciseId, exerciseName, type, skillKey, setId, initialValues } = route.params;
+  const { workoutLogId, sessionExerciseId, exerciseName, type, skillKey, skillId, setId, initialValues } = route.params;
   const isEditing = !!setId;
 
   const [reps, setReps] = useState(initialValues?.reps != null ? String(initialValues.reps) : '');
@@ -60,7 +61,7 @@ export function SetFormScreen({ navigation, route }: Props) {
     if (isEditing) {
       updateSet.mutate({ id: setId, ...values }, { onError });
     } else {
-      addSet.mutate({ sessionExerciseId, exerciseName, type, skillKey, ...values }, { onError });
+      addSet.mutate({ sessionExerciseId, exerciseName, type, skillKey, skillId, ...values }, { onError });
       // Premier ajout d'un exercice à la volée : pas de plan pour connaître
       // un repos dédié, on démarre avec la valeur par défaut de l'app.
       restTimer.start(DEFAULT_REST_SECONDS, exerciseName);

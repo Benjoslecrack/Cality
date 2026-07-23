@@ -141,6 +141,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
         exerciseName: exercise.name,
         type: exercise.type,
         skillKey: exercise.skill_key,
+        skillId: exercise.skill_id,
         reps: exercise.type !== 'isometric' ? reps : null,
         weight_kg: exercise.type === 'reps_weight' ? weight : null,
         hold_seconds: exercise.type === 'isometric' ? hold : null,

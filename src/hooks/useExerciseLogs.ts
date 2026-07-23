@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { isRecordBeaten, progressPoint } from '../lib/progressValue';
+import { evaluateSkillRankUps } from './useSkillRanks';
+import type { SkillTierWithCriteria } from '../lib/skillRanks';
 import type { ExerciseType, SkillKey } from '../types/database';
 
 export function useExerciseLogsQuery(workoutLogId: string) {
@@ -24,6 +26,7 @@ export type AddSetInput = {
   exerciseName: string;
   type: ExerciseType;
   skillKey: SkillKey | null;
+  skillId: string | null;
   reps: number | null;
   weight_kg: number | null;
   hold_seconds: number | null;
@@ -81,6 +84,7 @@ export function useAddExerciseSet(workoutLogId: string) {
           exercise_name: input.exerciseName,
           type: input.type,
           skill_key: input.skillKey,
+          skill_id: input.skillId,
           set_number: existingSets.length + 1,
           reps: input.reps,
           weight_kg: input.weight_kg,
@@ -99,11 +103,20 @@ export function useAddExerciseSet(workoutLogId: string) {
       });
       const isNewRecord = isRecordBeaten(newPoint?.value ?? null, priorBest);
 
-      return { row, isNewRecord };
+      let newlyUnlockedTiers: SkillTierWithCriteria[] = [];
+      if (input.skillId) {
+        newlyUnlockedTiers = await evaluateSkillRankUps(userId!, input.skillId, row.id);
+      }
+
+      return { row, isNewRecord, newlyUnlockedTiers };
     },
-    onSuccess: () => {
+    onSuccess: (_data, input) => {
       queryClient.invalidateQueries({ queryKey: ['exercise_logs', workoutLogId] });
       queryClient.invalidateQueries({ queryKey: ['progress_history'] });
+      if (input.skillId) {
+        queryClient.invalidateQueries({ queryKey: ['user_skill_progress', userId] });
+        queryClient.invalidateQueries({ queryKey: ['skill_logs', input.skillId, userId] });
+      }
     },
   });
 }

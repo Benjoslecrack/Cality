@@ -138,6 +138,40 @@ async function main() {
       .single();
     if (photoError) throw new Error(`Insertion progress_photo (A) : ${photoError.message}`);
 
+    console.log('\nVérification du catalogue de skills (référentiel partagé, lecture ouverte)...');
+    const { data: pullUpSkill, error: skillError } = await admin.from('skills').select('id').eq('key', 'pull_up').single();
+    if (skillError) throw new Error(`Lecture skills (admin) : ${skillError.message}`);
+    const { data: ironTier, error: tierError } = await admin
+      .from('skill_tiers')
+      .select('id')
+      .eq('skill_id', pullUpSkill.id)
+      .eq('rank', 'iron')
+      .single();
+    if (tierError) throw new Error(`Lecture skill_tiers (admin) : ${tierError.message}`);
+    const { data: bronzeTier, error: bronzeTierError } = await admin
+      .from('skill_tiers')
+      .select('id')
+      .eq('skill_id', pullUpSkill.id)
+      .eq('rank', 'bronze')
+      .single();
+    if (bronzeTierError) throw new Error(`Lecture skill_tiers bronze (admin) : ${bronzeTierError.message}`);
+
+    const { data: catalogAsB, error: catalogError } = await userB.client.from('skills').select('id').limit(1);
+    check('SELECT skills (B lit le catalogue partagé)', !catalogError && (catalogAsB ?? []).length > 0, catalogError?.message);
+
+    console.log("\nEnregistrement d'une progression de rang et d'une sélection de skill comme A...");
+    const { data: skillProgress, error: progressError } = await userA.client
+      .from('user_skill_progress')
+      .insert({ user_id: userA.userId, skill_id: pullUpSkill.id, skill_tier_id: ironTier.id })
+      .select()
+      .single();
+    if (progressError) throw new Error(`Insertion user_skill_progress (A) : ${progressError.message}`);
+
+    const { error: selectionError } = await userA.client
+      .from('user_skill_selection')
+      .insert({ user_id: userA.userId, skill_id: pullUpSkill.id });
+    if (selectionError) throw new Error(`Insertion user_skill_selection (A) : ${selectionError.message}`);
+
     console.log("\nVérification que l'utilisateur B ne peut PAS lire les données de A...");
     const tablesAndIds = [
       ['profiles', 'id', userA.userId],
@@ -148,12 +182,25 @@ async function main() {
       ['workout_logs', 'id', workoutLog.id],
       ['exercise_logs', 'id', exerciseLog.id],
       ['progress_photos', 'id', progressPhoto.id],
+      ['user_skill_progress', 'id', skillProgress.id],
     ];
 
     for (const [table, idColumn, id] of tablesAndIds) {
       const { data, error } = await userB.client.from(table).select('*').eq(idColumn, id);
       check(`SELECT ${table} (B lit une ligne de A)`, !error && data.length === 0, error ? error.message : `${data.length} ligne(s) visible(s)`);
     }
+
+    // user_skill_selection a une clé primaire composite (user_id, skill_id),
+    // pas de colonne id — vérifié à part.
+    const { data: selectionAsB, error: selectionSelectError } = await userB.client
+      .from('user_skill_selection')
+      .select('*')
+      .eq('user_id', userA.userId);
+    check(
+      'SELECT user_skill_selection (B lit la sélection de A)',
+      !selectionSelectError && selectionAsB.length === 0,
+      selectionSelectError ? selectionSelectError.message : `${selectionAsB.length} ligne(s) visible(s)`
+    );
 
     console.log("\nVérification que l'utilisateur B ne peut PAS modifier/supprimer les données de A...");
     const { data: updateData } = await userB.client
@@ -165,6 +212,44 @@ async function main() {
 
     const { data: deleteData } = await userB.client.from('exercise_logs').delete().eq('id', exerciseLog.id).select();
     check('DELETE exercise_logs (B supprime une ligne de A)', (deleteData ?? []).length === 0, `${(deleteData ?? []).length} ligne(s) supprimée(s)`);
+
+    const { data: deleteProgressData } = await userB.client
+      .from('user_skill_progress')
+      .delete()
+      .eq('id', skillProgress.id)
+      .select();
+    check(
+      'DELETE user_skill_progress (B supprime une progression de A)',
+      (deleteProgressData ?? []).length === 0,
+      `${(deleteProgressData ?? []).length} ligne(s) supprimée(s)`
+    );
+
+    const { error: deleteSelectionError } = await userB.client
+      .from('user_skill_selection')
+      .delete()
+      .eq('user_id', userA.userId)
+      .eq('skill_id', pullUpSkill.id);
+    const { data: selectionStillThere } = await userA.client
+      .from('user_skill_selection')
+      .select('*')
+      .eq('user_id', userA.userId)
+      .eq('skill_id', pullUpSkill.id);
+    check(
+      'DELETE user_skill_selection (B supprime la sélection de A)',
+      (selectionStillThere ?? []).length === 1,
+      deleteSelectionError ? deleteSelectionError.message : 'la ligne de A a disparu après suppression par B'
+    );
+
+    console.log("\nVérification que B ne peut pas usurper l'identité de A à l'insertion...");
+    const { data: impersonationData, error: impersonationError } = await userB.client
+      .from('user_skill_progress')
+      .insert({ user_id: userA.userId, skill_id: pullUpSkill.id, skill_tier_id: bronzeTier.id })
+      .select();
+    check(
+      'INSERT user_skill_progress (B insère avec user_id = A)',
+      !!impersonationError && (impersonationData ?? []).length === 0,
+      impersonationError ? undefined : 'insertion réussie'
+    );
 
     console.log("\nVérification des policies Storage (bucket progress-photos)...");
     const { data: bucket, error: bucketError } = await admin.storage.getBucket('progress-photos');

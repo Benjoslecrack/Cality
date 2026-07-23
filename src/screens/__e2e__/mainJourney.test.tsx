@@ -93,6 +93,7 @@ function JourneyHarness({ onSessionReady }: { onSessionReady: (userId: string) =
             exerciseName: 'Tractions',
             type: 'progression',
             skillKey: 'pull_up',
+            skillId: null,
             reps: 12,
             weight_kg: null,
             hold_seconds: null,

@@ -48,6 +48,7 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
       name: exercise.name,
       type: exercise.type,
       skillKey: exercise.skill_key,
+      skillId: exercise.skill_id,
       sessionExerciseId: exercise.id,
       restSeconds: exercise.target_rest_seconds ?? DEFAULT_REST_SECONDS,
       target: {
@@ -72,6 +73,7 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
           name: log.exercise_name,
           type: log.type,
           skillKey: log.skill_key,
+          skillId: log.skill_id,
           sessionExerciseId: log.session_exercise_id,
           restSeconds: DEFAULT_REST_SECONDS,
           sets: [],
@@ -107,6 +109,7 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
       exerciseName: card.name,
       type: card.type,
       skillKey: card.skillKey,
+      skillId: card.skillId,
       setId,
       initialValues,
     });
