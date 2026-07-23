@@ -8,15 +8,23 @@ import {
   useDeleteWorkoutLog,
   useWorkoutLogByCalendarEntryQuery,
 } from '../hooks/useWorkoutLogs';
+import { SteelBar } from './SteelBar';
+import { CARD_SHADOW, COLORS } from '../theme/tokens';
 import type { CalendarStatus } from '../types/database';
 
-const STATUS_STYLES: Record<CalendarStatus, { label: string; badgeClass: string; textClass: string }> = {
-  planned: { label: 'Prévue', badgeClass: 'bg-surfaceAlt border-border', textClass: 'text-textMuted' },
-  done: { label: 'Faite', badgeClass: 'bg-success/20 border-success', textClass: 'text-success' },
-  skipped: { label: 'Sautée', badgeClass: 'bg-warning/20 border-warning', textClass: 'text-warning' },
+const STATUS_META: Record<CalendarStatus, { label: string; icon: keyof typeof Ionicons.glyphMap; iconColor: string } | null> = {
+  planned: null, // état par défaut, pas besoin de le signaler
+  done: { label: 'Faite', icon: 'checkmark-circle', iconColor: COLORS.accent },
+  skipped: { label: 'Sautée', icon: 'play-skip-forward-circle-outline', iconColor: COLORS.textMuted },
 };
 
-export function CalendarEntryCard({ entry }: { entry: CalendarEntryWithSession }) {
+type Props = {
+  entry: CalendarEntryWithSession;
+  /** 'hero' : mise en avant sur l'écran Aujourd'hui (gros, un coup d'œil suffit). */
+  size?: 'default' | 'hero';
+};
+
+export function CalendarEntryCard({ entry, size = 'default' }: Props) {
   // Typage volontairement large : ce composant est réutilisé dans plusieurs
   // stacks (Aujourd'hui, Calendrier) qui déclarent chacun l'écran WorkoutLog.
   const navigation = useNavigation<{ navigate: (screen: string, params?: object) => void }>();
@@ -25,7 +33,8 @@ export function CalendarEntryCard({ entry }: { entry: CalendarEntryWithSession }
   const deleteWorkoutLog = useDeleteWorkoutLog();
   const createWorkoutLog = useCreateWorkoutLog();
   const { data: existingLog } = useWorkoutLogByCalendarEntryQuery(entry.id);
-  const statusStyle = STATUS_STYLES[entry.status];
+  const statusMeta = STATUS_META[entry.status];
+  const isHero = size === 'hero';
 
   const setStatus = (status: CalendarStatus) => updateStatus.mutate({ id: entry.id, status });
 
@@ -73,45 +82,61 @@ export function CalendarEntryCard({ entry }: { entry: CalendarEntryWithSession }
   };
 
   return (
-    <View className="rounded-2xl border border-border bg-surface p-4">
+    <View
+      style={CARD_SHADOW}
+      className={`rounded-2xl bg-surface ${isHero ? 'p-6' : 'p-4'}`}
+    >
       <View className="flex-row items-start justify-between">
-        <View className="flex-1 pr-2">
-          <Text className="text-base font-semibold text-text">{entry.program_sessions?.name ?? 'Séance'}</Text>
+        <View className="flex-1 pr-3">
+          <Text
+            className={`font-display text-text ${isHero ? 'text-3xl' : 'text-lg'}`}
+            numberOfLines={2}
+          >
+            {entry.program_sessions?.name ?? 'Séance'}
+          </Text>
           {entry.program_sessions?.programs?.name ? (
-            <Text className="mt-0.5 text-sm text-textMuted">{entry.program_sessions.programs.name}</Text>
+            <Text className="mt-1 font-body text-sm text-textMuted">{entry.program_sessions.programs.name}</Text>
           ) : null}
         </View>
-        <View className={`rounded-full border px-2.5 py-0.5 ${statusStyle.badgeClass}`}>
-          <Text className={`text-xs font-medium ${statusStyle.textClass}`}>{statusStyle.label}</Text>
-        </View>
+        {statusMeta ? (
+          <View className="flex-row items-center gap-1.5">
+            <Ionicons name={statusMeta.icon} size={18} color={statusMeta.iconColor} />
+            <Text className="font-bodyMedium text-sm text-textMuted">{statusMeta.label}</Text>
+          </View>
+        ) : null}
       </View>
 
-      <View className="mt-3 flex-row items-center gap-2">
-        {entry.status !== 'done' ? (
-          <Pressable onPress={() => setStatus('done')} className="rounded-lg border border-success px-3 py-1.5">
-            <Text className="text-sm font-medium text-success">Marquer fait</Text>
-          </Pressable>
-        ) : null}
-        {entry.status !== 'skipped' ? (
-          <Pressable onPress={() => setStatus('skipped')} className="rounded-lg border border-warning px-3 py-1.5">
-            <Text className="text-sm font-medium text-warning">Marquer sauté</Text>
-          </Pressable>
-        ) : null}
-        {entry.status !== 'planned' ? (
-          <Pressable onPress={() => setStatus('planned')} className="rounded-lg border border-border px-3 py-1.5">
-            <Text className="text-sm text-textMuted">Replanifier</Text>
-          </Pressable>
-        ) : null}
-        <Pressable onPress={confirmDelete} hitSlop={8} className="ml-auto">
-          <Ionicons name="trash-outline" size={18} color="#9AA1AA" />
-        </Pressable>
-      </View>
+      {isHero ? <View className="my-4"><SteelBar height={4} /></View> : null}
 
-      <Pressable onPress={handleLog} className="mt-2 items-center rounded-lg bg-primary py-2">
-        <Text className="text-sm font-semibold text-white">
+      <Pressable
+        onPress={handleLog}
+        className={`mt-4 min-h-11 items-center justify-center rounded-xl bg-accent ${isHero ? 'py-4' : 'py-2.5'}`}
+      >
+        <Text className={`font-bodySemibold text-onAccent ${isHero ? 'text-lg' : 'text-sm'}`}>
           {existingLog ? 'Voir le log' : 'Logger cette séance'}
         </Text>
       </Pressable>
+
+      <View className="mt-3 flex-row flex-wrap items-center gap-2">
+        {entry.status !== 'done' ? (
+          <Pressable onPress={() => setStatus('done')} className="min-h-11 justify-center rounded-lg border border-accentDim px-3">
+            <Text className="font-bodyMedium text-sm text-text">Marquer fait</Text>
+          </Pressable>
+        ) : null}
+        {entry.status !== 'skipped' ? (
+          <Pressable onPress={() => setStatus('skipped')} className="min-h-11 justify-center rounded-lg border border-accentDim px-3">
+            <Text className="font-bodyMedium text-sm text-text">Marquer sauté</Text>
+          </Pressable>
+        ) : null}
+        {entry.status !== 'planned' ? (
+          <Pressable onPress={() => setStatus('planned')} className="min-h-11 justify-center rounded-lg px-3">
+            <Text className="font-bodyMedium text-sm text-textMuted">Replanifier</Text>
+          </Pressable>
+        ) : null}
+        <Pressable onPress={confirmDelete} hitSlop={8} className="ml-auto h-11 w-11 items-center justify-center">
+          <Ionicons name="trash-outline" size={18} color={COLORS.textMuted} />
+        </Pressable>
+      </View>
     </View>
   );
 }

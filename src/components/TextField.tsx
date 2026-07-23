@@ -1,4 +1,5 @@
 import { Text, TextInput, View, type TextInputProps } from 'react-native';
+import { COLORS } from '../theme/tokens';
 
 type TextFieldProps = TextInputProps & {
   label: string;
@@ -8,14 +9,14 @@ type TextFieldProps = TextInputProps & {
 export function TextField({ label, error, ...inputProps }: TextFieldProps) {
   return (
     <View className="mb-4">
-      <Text className="mb-1.5 text-sm font-medium text-textMuted">{label}</Text>
+      <Text className="mb-1.5 font-bodyMedium text-sm text-textMuted">{label}</Text>
       <TextInput
-        className="rounded-xl border border-border bg-surface px-4 py-3 text-base text-text"
-        placeholderTextColor="#9AA1AA"
+        className="min-h-11 rounded-xl border border-textMuted/25 bg-surface px-4 py-3 font-body text-base text-text"
+        placeholderTextColor={COLORS.textMuted}
         autoCapitalize="none"
         {...inputProps}
       />
-      {error ? <Text className="mt-1 text-sm text-primary">{error}</Text> : null}
+      {error ? <Text className="mt-1 font-bodyMedium text-sm text-accent">{error}</Text> : null}
     </View>
   );
 }

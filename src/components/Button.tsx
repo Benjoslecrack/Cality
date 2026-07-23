@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, Text } from 'react-native';
+import { COLORS } from '../theme/tokens';
 
 type ButtonProps = {
   label: string;
@@ -14,14 +15,14 @@ export function Button({ label, onPress, variant = 'primary', loading, disabled 
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      className={`items-center rounded-xl py-3.5 ${
-        isPrimary ? 'bg-primary' : 'border border-border bg-transparent'
+      className={`min-h-11 items-center justify-center rounded-xl py-3 ${
+        isPrimary ? 'bg-accent' : 'border border-accentDim bg-transparent'
       } ${disabled || loading ? 'opacity-50' : ''}`}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? '#fff' : '#F5F6F7'} />
+        <ActivityIndicator color={isPrimary ? COLORS.onAccent : COLORS.textPrimary} />
       ) : (
-        <Text className={`text-base font-semibold ${isPrimary ? 'text-white' : 'text-text'}`}>
+        <Text className={`font-bodySemibold text-base ${isPrimary ? 'text-onAccent' : 'text-text'}`}>
           {label}
         </Text>
       )}

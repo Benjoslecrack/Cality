@@ -3,9 +3,11 @@ import { Alert, ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { Button } from '../components/Button';
 import { CalendarEntryCard } from '../components/CalendarEntryCard';
 import { FreeWorkoutLogCard } from '../components/FreeWorkoutLogCard';
+import { SteelBar } from '../components/SteelBar';
 import { useTodayEntriesQuery } from '../hooks/useCalendarEntries';
 import { useCreateWorkoutLog, useFreeWorkoutLogsByDateQuery } from '../hooks/useWorkoutLogs';
 import { formatDayLabel, todayDateKey } from '../lib/dateUtils';
+import { COLORS } from '../theme/tokens';
 
 type Props = {
   navigation: {
@@ -29,6 +31,8 @@ export function TodayScreen({ navigation }: Props) {
     return [...entryRows, ...freeRows];
   }, [entries, freeLogs]);
 
+  const [heroRow, ...restRows] = rows;
+
   const handleStartFreeSession = () => {
     createWorkoutLog.mutate(
       { sessionName: 'Séance libre', performedDate: dateKey, calendarEntryId: null },
@@ -42,7 +46,7 @@ export function TodayScreen({ navigation }: Props) {
   if (isLoadingEntries || isLoadingFreeLogs) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.accent} />
       </View>
     );
   }
@@ -50,28 +54,59 @@ export function TodayScreen({ navigation }: Props) {
   return (
     <View className="flex-1 bg-background">
       <FlatList
-        data={rows}
+        data={restRows}
         keyExtractor={(row) => row.id}
         contentContainerClassName="px-6 pb-6 pt-4 gap-3"
         ListHeaderComponent={
-          <Text className="mb-4 text-2xl font-bold capitalize text-text">{formatDayLabel(dateKey)}</Text>
-        }
-        ListEmptyComponent={
-          <View className="mt-8 items-center px-6">
-            <Text className="mb-2 text-lg font-semibold text-text">Aucune séance prévue aujourd'hui</Text>
-            <Text className="mb-6 text-center text-textMuted">
-              Planifie une séance pour aujourd'hui ou repose-toi !
+          <View className="mb-5">
+            <Text className="mb-1 font-bodyMedium text-xs uppercase tracking-widest text-textMuted">
+              Aujourd'hui
             </Text>
+            <Text className="mb-5 font-display text-2xl capitalize text-text">{formatDayLabel(dateKey)}</Text>
+
+            {heroRow ? (
+              <>
+                {heroRow.kind === 'entry' ? (
+                  <CalendarEntryCard entry={heroRow.entry} size="hero" />
+                ) : (
+                  <FreeWorkoutLogCard log={heroRow.log} size="hero" />
+                )}
+                {restRows.length > 0 ? (
+                  <View className="mb-1 mt-6">
+                    <SteelBar />
+                    <Text className="mb-3 mt-4 font-bodyMedium text-sm text-textMuted">Aussi aujourd'hui</Text>
+                  </View>
+                ) : null}
+              </>
+            ) : (
+              <View className="items-start rounded-2xl bg-surface p-6">
+                <Text className="mb-4 font-display text-2xl text-text">Aucune séance planifiée</Text>
+                <View className="mb-5 w-full">
+                  <SteelBar />
+                </View>
+                <View className="w-full gap-3">
+                  <Button label="Ajouter une séance" onPress={() => navigation.navigate('SessionPicker', { dateKey })} />
+                  <Button
+                    label="Démarrer une séance libre"
+                    variant="secondary"
+                    onPress={handleStartFreeSession}
+                    loading={createWorkoutLog.isPending}
+                  />
+                </View>
+              </View>
+            )}
           </View>
         }
         renderItem={({ item }) =>
           item.kind === 'entry' ? <CalendarEntryCard entry={item.entry} /> : <FreeWorkoutLogCard log={item.log} />
         }
         ListFooterComponent={
-          <View className="mt-4 gap-3">
-            <Button label="Planifier une séance" variant="secondary" onPress={() => navigation.navigate('SessionPicker', { dateKey })} />
-            <Button label="Démarrer une séance libre" onPress={handleStartFreeSession} loading={createWorkoutLog.isPending} />
-          </View>
+          heroRow ? (
+            <View className="mt-4 gap-3">
+              <Button label="Planifier une autre séance" variant="secondary" onPress={() => navigation.navigate('SessionPicker', { dateKey })} />
+              <Button label="Démarrer une séance libre" onPress={handleStartFreeSession} loading={createWorkoutLog.isPending} />
+            </View>
+          ) : null
         }
       />
     </View>
