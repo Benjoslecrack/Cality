@@ -1,18 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { computeSuggestion, type SetSuggestion } from '../lib/suggestSet';
 import type { ExerciseType } from '../types/database';
 
-export type SetSuggestion = {
-  reps: number | null;
-  weight_kg: number | null;
-  hold_seconds: number | null;
-  progression_variant: string | null;
-  bumped: boolean; // true si +1 rep/+5s appliqué (dernière séance à RPE bas)
-  basedOnRpe: number | null;
-};
-
-const RPE_LOW_THRESHOLD = 6; // sur 10 : en dessous, on propose de pousser un peu plus
+export type { SetSuggestion } from '../lib/suggestSet';
 
 // Suggestion éditable pour la première série d'un exercice dans une nouvelle
 // séance : reprend la dernière performance loggée, et pousse légèrement
@@ -47,27 +39,7 @@ export function useSuggestedSet(
       if (!last) return null;
 
       const rpe = last.workout_logs?.rpe ?? null;
-      const bump = rpe != null && rpe <= RPE_LOW_THRESHOLD;
-
-      if (type === 'isometric') {
-        return {
-          reps: null,
-          weight_kg: null,
-          hold_seconds: last.hold_seconds != null ? last.hold_seconds + (bump ? 5 : 0) : null,
-          progression_variant: null,
-          bumped: bump,
-          basedOnRpe: rpe,
-        };
-      }
-
-      return {
-        reps: last.reps != null ? last.reps + (bump ? 1 : 0) : null,
-        weight_kg: last.weight_kg,
-        hold_seconds: null,
-        progression_variant: last.progression_variant,
-        bumped: bump,
-        basedOnRpe: rpe,
-      };
+      return computeSuggestion(last, rpe, type);
     },
   });
 }

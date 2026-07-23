@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { progressPoint } from '../lib/progressValue';
+import { isRecordBeaten, progressPoint } from '../lib/progressValue';
 import type { ExerciseType, SkillKey } from '../types/database';
 
 export function useExerciseLogsQuery(workoutLogId: string) {
@@ -97,7 +97,7 @@ export function useAddExerciseSet(workoutLogId: string) {
         weight_kg: input.weight_kg,
         hold_seconds: input.hold_seconds,
       });
-      const isNewRecord = newPoint != null && priorBest != null && newPoint.value > priorBest;
+      const isNewRecord = isRecordBeaten(newPoint?.value ?? null, priorBest);
 
       return { row, isNewRecord };
     },

@@ -21,3 +21,9 @@ export function progressPoint(log: LoggedFields): { value: number; unit: string 
       return log.reps != null ? { value: log.reps, unit: 'reps' } : null;
   }
 }
+
+// Un record n'est déclaré que face à un historique existant : le tout
+// premier log d'un exercice n'est pas un "record battu" (rien à comparer).
+export function isRecordBeaten(newValue: number | null, priorBest: number | null): boolean {
+  return newValue != null && priorBest != null && newValue > priorBest;
+}

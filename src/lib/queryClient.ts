@@ -2,7 +2,10 @@ import NetInfo from '@react-native-community/netinfo';
 import { MutationCache, onlineManager, QueryClient } from '@tanstack/react-query';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { Alert } from 'react-native';
+import { isDataConflictError, shouldRetryMutation } from './dataConflict';
 import storage from './keyValueStore';
+
+export { isDataConflictError } from './dataConflict';
 
 // Branche le détecteur réseau de React Query sur NetInfo : sans ça, React
 // Native ne sait pas dire à la librairie si on est hors-ligne, et les
@@ -13,13 +16,6 @@ onlineManager.setEventListener((setOnline) => {
   });
 });
 
-// Une erreur Postgrest structurée (RLS, contrainte, ligne absente...) est un
-// vrai conflit de données, pas un souci réseau : retenter ne changera rien,
-// contrairement à une simple coupure de connexion.
-export function isDataConflictError(error: unknown): error is { code: string; message: string } {
-  return typeof error === 'object' && error !== null && 'code' in error && typeof (error as { code: unknown }).code === 'string';
-}
-
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -27,7 +23,7 @@ export const queryClient = new QueryClient({
       staleTime: 30_000,
     },
     mutations: {
-      retry: (failureCount, error) => !isDataConflictError(error) && failureCount < 2,
+      retry: shouldRetryMutation,
     },
   },
   mutationCache: new MutationCache({

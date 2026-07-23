@@ -14,8 +14,8 @@ export type WeeklyPoint = { label: string; value: number; unit: string };
 
 // Tendance par skill sur N mois : la meilleure valeur atteinte chaque semaine
 // (au-delà de la barre-signature, qui ne montre que les derniers points bruts).
-export function aggregateWeeklyBest(entries: LogEntry[], months = 3): WeeklyPoint[] {
-  const cutoff = new Date();
+export function aggregateWeeklyBest(entries: LogEntry[], months = 3, now = new Date()): WeeklyPoint[] {
+  const cutoff = new Date(now);
   cutoff.setMonth(cutoff.getMonth() - months);
 
   const buckets = new Map<string, { value: number; unit: string; weekStart: Date }>();
@@ -49,9 +49,10 @@ type WorkoutLogEntry = { performed_date: string };
 // d'exercice (charge, temps de maintien, reps ne se comparent pas entre eux).
 export function aggregateWeeklySetCount(
   exerciseLogEntries: { workout_logs: WorkoutLogEntry | null }[],
-  months = 3
+  months = 3,
+  now = new Date()
 ): WeeklyPoint[] {
-  const cutoff = new Date();
+  const cutoff = new Date(now);
   cutoff.setMonth(cutoff.getMonth() - months);
 
   const buckets = new Map<string, { count: number; weekStart: Date }>();
