@@ -9,10 +9,12 @@ import { useSkillCatalogQuery } from '../../hooks/useSkillRanks';
 import { useSuggestedSet } from '../../hooks/useSuggestedSet';
 import { isDataConflictError } from '../../lib/queryClient';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget, formatSetValue } from '../../lib/exerciseFormat';
-import { RANK_COLORS, RANK_LABELS } from '../../lib/rankPresentation';
-import { isHigherRank } from '../../lib/skillRanks';
+import { formatRankLabel, RANK_COLORS, RANK_LABELS } from '../../lib/rankPresentation';
+import { tierPosition } from '../../lib/skillRanks';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
-import type { ExerciseType, SkillKey, SkillRank } from '../../types/database';
+import type { ExerciseType, SkillKey } from '../../types/database';
+
+type TierFlash = { color: string; label: string; isRankUp: boolean };
 
 export type ExerciseCardData = {
   key: string;
@@ -60,7 +62,7 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
   const [hold, setHold] = useState(lastSet?.hold_seconds ?? card.target?.target_hold_seconds ?? 20);
   const [variant, setVariant] = useState(lastSet?.progression_variant ?? card.target?.progression_variant ?? '');
   const [showRecordFlash, setShowRecordFlash] = useState(false);
-  const [rankUp, setRankUp] = useState<SkillRank | null>(null);
+  const [tierFlash, setTierFlash] = useState<TierFlash | null>(null);
 
   // Suggestion éditable pour la toute première série de l'exercice dans cette
   // séance (au-delà, on reprend simplement la série précédente de la séance
@@ -97,15 +99,28 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
         progression_variant: card.type === 'progression' ? variant.trim() || null : null,
       },
       {
-        onSuccess: ({ isNewRecord, newlyUnlockedTiers }) => {
+        onSuccess: ({ isNewRecord, rankUp }) => {
           if (isNewRecord) {
             setShowRecordFlash(true);
             setTimeout(() => setShowRecordFlash(false), 2600);
           }
-          if (newlyUnlockedTiers.length > 0) {
-            const highest = newlyUnlockedTiers.reduce((top, tier) => (isHigherRank(tier.rank, top.rank) ? tier : top));
-            setRankUp(highest.rank);
-            setTimeout(() => setRankUp(null), 2600);
+          if (rankUp.newlyUnlockedTiers.length > 0) {
+            const highest = rankUp.newlyUnlockedTiers.reduce((top, tier) =>
+              tierPosition(tier) > tierPosition(top) ? tier : top
+            );
+            // Nouveau rang macro (ex. Fer III -> Bronze I) : badge + flash
+            // distinct. Simple palier (I->II->III au sein du même rang) : la
+            // barre avance, sans l'habillage "rang" pour ne pas le confondre
+            // avec un vrai changement de catégorie.
+            const isRankUp = rankUp.previousRank !== rankUp.newRank;
+            setTierFlash({
+              color: RANK_COLORS[highest.rank],
+              label: isRankUp
+                ? `Nouveau rang : ${RANK_LABELS[highest.rank]}`
+                : `Nouveau palier : ${formatRankLabel(highest.rank, highest.subLevel)}`,
+              isRankUp,
+            });
+            setTimeout(() => setTierFlash(null), 2600);
           }
         },
         onError: (error) => {
@@ -185,12 +200,12 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
         </View>
       ) : null}
 
-      {rankUp ? (
+      {tierFlash ? (
         <View className="mt-3">
-          <Text className="mb-1.5 font-bodySemibold text-sm" style={{ color: RANK_COLORS[rankUp] }}>
-            Nouveau rang : {RANK_LABELS[rankUp]}
+          <Text className="mb-1.5 font-bodySemibold text-sm" style={{ color: tierFlash.color }}>
+            {tierFlash.label}
           </Text>
-          <SteelBar progress={1} justRanked fillColors={[COLORS.textMuted, RANK_COLORS[rankUp]]} />
+          <SteelBar progress={1} justRanked={tierFlash.isRankUp} fillColors={[COLORS.textMuted, tierFlash.color]} />
         </View>
       ) : null}
     </View>

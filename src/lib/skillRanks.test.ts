@@ -1,11 +1,13 @@
 import {
   currentRank,
   findNewlyUnlockedTiers,
+  highestUnlockedTier,
   isCriterionSatisfiedByLog,
   isHigherRank,
   isTierSatisfied,
   nextLockedTier,
   rankIndex,
+  tierPosition,
   tierProgress,
   type RankableLog,
   type SkillTierWithCriteria,
@@ -14,6 +16,10 @@ import {
 
 function log(overrides: Partial<RankableLog> = {}): RankableLog {
   return { reps: null, hold_seconds: null, progression_variant: null, ...overrides };
+}
+
+function tier(overrides: Partial<SkillTierWithCriteria> = {}): SkillTierWithCriteria {
+  return { id: 't', rank: 'iron', subLevel: 1, criteria: [], ...overrides };
 }
 
 describe('rankIndex / isHigherRank', () => {
@@ -26,6 +32,15 @@ describe('rankIndex / isHigherRank', () => {
     expect(isHigherRank('gold', 'silver')).toBe(true);
     expect(isHigherRank('silver', 'gold')).toBe(false);
     expect(isHigherRank('iron', 'iron')).toBe(false);
+  });
+});
+
+describe('tierPosition', () => {
+  it("va de 0 (Fer I) à 14 (Maître III) sur les 15 paliers d'un skill", () => {
+    expect(tierPosition({ rank: 'iron', subLevel: 1 })).toBe(0);
+    expect(tierPosition({ rank: 'iron', subLevel: 3 })).toBe(2);
+    expect(tierPosition({ rank: 'bronze', subLevel: 1 })).toBe(3);
+    expect(tierPosition({ rank: 'master', subLevel: 3 })).toBe(14);
   });
 });
 
@@ -63,33 +78,32 @@ describe('isCriterionSatisfiedByLog', () => {
 
 describe('isTierSatisfied', () => {
   it('satisfait si un seul des critères OU est validé par un seul des logs', () => {
-    const tier: SkillTierWithCriteria = {
+    const t = tier({
       id: 'gold',
       rank: 'gold',
       criteria: [
         { criterionType: 'variant', threshold: null, variantMatch: 'weighted' },
         { criterionType: 'variant', threshold: null, variantMatch: 'archer' },
       ],
-    };
-    expect(isTierSatisfied(tier, [log({ progression_variant: 'archer' })])).toBe(true);
-    expect(isTierSatisfied(tier, [log({ progression_variant: 'kipping' })])).toBe(false);
+    });
+    expect(isTierSatisfied(t, [log({ progression_variant: 'archer' })])).toBe(true);
+    expect(isTierSatisfied(t, [log({ progression_variant: 'kipping' })])).toBe(false);
   });
 
   it('cherche à travers tout l\'historique, pas seulement le dernier log', () => {
-    const tier: SkillTierWithCriteria = {
-      id: 't',
+    const t = tier({
       rank: 'silver',
       criteria: [{ criterionType: 'reps', threshold: 10, variantMatch: 'strict' }],
-    };
+    });
     const logs = [log({ reps: 5, progression_variant: 'strict' }), log({ reps: 10, progression_variant: 'strict' })];
-    expect(isTierSatisfied(tier, logs)).toBe(true);
+    expect(isTierSatisfied(t, logs)).toBe(true);
   });
 });
 
 describe('findNewlyUnlockedTiers', () => {
   const tiers: SkillTierWithCriteria[] = [
-    { id: 'iron', rank: 'iron', criteria: [{ criterionType: 'hold_seconds', threshold: 10, variantMatch: 'tuck' }] },
-    { id: 'gold', rank: 'gold', criteria: [{ criterionType: 'hold_seconds', threshold: 10, variantMatch: 'full' }] },
+    tier({ id: 'iron', rank: 'iron', criteria: [{ criterionType: 'hold_seconds', threshold: 10, variantMatch: 'tuck' }] }),
+    tier({ id: 'gold', rank: 'gold', criteria: [{ criterionType: 'hold_seconds', threshold: 10, variantMatch: 'full' }] }),
   ];
 
   it('renvoie les paliers désormais satisfaits qui ne sont pas déjà débloqués', () => {
@@ -130,83 +144,88 @@ describe('currentRank', () => {
   });
 });
 
+// 15 paliers réalistes (3 sous-niveaux par rang macro) pour vérifier que le
+// tri se fait bien sur (rang, sous-niveau) et pas seulement sur le rang.
+const FULL_LADDER: SkillTierWithCriteria[] = (['iron', 'bronze', 'silver', 'gold', 'master'] as const).flatMap((rank) =>
+  [1, 2, 3].map((subLevel) => tier({ id: `${rank}_${subLevel}`, rank, subLevel }))
+);
+
 describe('nextLockedTier', () => {
-  const tiers: SkillTierWithCriteria[] = [
-    { id: 'iron', rank: 'iron', criteria: [] },
-    { id: 'bronze', rank: 'bronze', criteria: [] },
-    { id: 'silver', rank: 'silver', criteria: [] },
-    { id: 'gold', rank: 'gold', criteria: [] },
-    { id: 'master', rank: 'master', criteria: [] },
-  ];
-
-  it("renvoie le premier palier non débloqué dans l'ordre Fer -> Maître", () => {
-    expect(nextLockedTier(tiers, new Set(['iron', 'bronze']))?.id).toBe('silver');
+  it("renvoie le premier palier non débloqué dans l'ordre Fer I -> Maître III", () => {
+    expect(nextLockedTier(FULL_LADDER, new Set(['iron_1', 'iron_2', 'iron_3', 'bronze_1']))?.id).toBe('bronze_2');
   });
 
-  it("renvoie le palier Fer si rien n'est débloqué", () => {
-    expect(nextLockedTier(tiers, new Set())?.id).toBe('iron');
+  it('respecte le sous-niveau au sein du même rang macro (pas seulement le rang)', () => {
+    // Débloqué : iron_1 et iron_3 mais pas iron_2 -> la suite logique reste iron_2.
+    expect(nextLockedTier(FULL_LADDER, new Set(['iron_1', 'iron_3']))?.id).toBe('iron_2');
   });
 
-  it('renvoie null si tous les paliers sont débloqués (Maître atteint)', () => {
-    expect(nextLockedTier(tiers, new Set(['iron', 'bronze', 'silver', 'gold', 'master']))).toBeNull();
+  it("renvoie le palier Fer I si rien n'est débloqué", () => {
+    expect(nextLockedTier(FULL_LADDER, new Set())?.id).toBe('iron_1');
+  });
+
+  it('renvoie null si les 15 paliers sont débloqués (Maître III atteint)', () => {
+    const allIds = new Set(FULL_LADDER.map((t) => t.id));
+    expect(nextLockedTier(FULL_LADDER, allIds)).toBeNull();
   });
 
   it("n'est pas perturbé par l'ordre des paliers en entrée (retrie en interne)", () => {
-    const shuffled = [tiers[3], tiers[0], tiers[4], tiers[1], tiers[2]];
-    expect(nextLockedTier(shuffled, new Set(['iron']))?.id).toBe('bronze');
+    const shuffled = [...FULL_LADDER].reverse();
+    expect(nextLockedTier(shuffled, new Set(['iron_1']))?.id).toBe('iron_2');
+  });
+});
+
+describe('highestUnlockedTier', () => {
+  it("renvoie null si aucun palier n'est débloqué", () => {
+    expect(highestUnlockedTier(FULL_LADDER, new Set())).toBeNull();
+  });
+
+  it('renvoie le palier débloqué le plus avancé (position la plus haute)', () => {
+    const unlocked = new Set(['iron_1', 'iron_2', 'iron_3', 'bronze_1', 'bronze_2']);
+    expect(highestUnlockedTier(FULL_LADDER, unlocked)?.id).toBe('bronze_2');
+  });
+
+  it("n'est pas trompé par un palier de rang inférieur débloqué après coup (une perf qui saute plusieurs paliers)", () => {
+    // silver_1 débloqué directement (perf qui dépasse plusieurs seuils d'un coup)
+    // alors que bronze_3 ne l'est pas encore : silver_1 reste le plus avancé.
+    const unlocked = new Set(['iron_1', 'bronze_1', 'silver_1']);
+    expect(highestUnlockedTier(FULL_LADDER, unlocked)?.id).toBe('silver_1');
   });
 });
 
 describe('tierProgress', () => {
   it('calcule le ratio pour un critère numérique simple', () => {
-    const tier: SkillTierWithCriteria = {
-      id: 't',
-      rank: 'iron',
-      criteria: [{ criterionType: 'hold_seconds', threshold: 10, variantMatch: null }],
-    };
-    expect(tierProgress(tier, [log({ hold_seconds: 5 })])).toBeCloseTo(0.5);
+    const t = tier({ criteria: [{ criterionType: 'hold_seconds', threshold: 10, variantMatch: null }] });
+    expect(tierProgress(t, [log({ hold_seconds: 5 })])).toBeCloseTo(0.5);
   });
 
   it('plafonne à 1 même si la valeur dépasse largement le seuil', () => {
-    const tier: SkillTierWithCriteria = {
-      id: 't',
-      rank: 'iron',
-      criteria: [{ criterionType: 'reps', threshold: 10, variantMatch: null }],
-    };
-    expect(tierProgress(tier, [log({ reps: 50 })])).toBe(1);
+    const t = tier({ criteria: [{ criterionType: 'reps', threshold: 10, variantMatch: null }] });
+    expect(tierProgress(t, [log({ reps: 50 })])).toBe(1);
   });
 
   it('est binaire (0 ou 1) pour un critère variant pur', () => {
-    const tier: SkillTierWithCriteria = {
-      id: 't',
-      rank: 'master',
-      criteria: [{ criterionType: 'variant', threshold: null, variantMatch: 'one_arm' }],
-    };
-    expect(tierProgress(tier, [log({ progression_variant: 'one_arm' })])).toBe(1);
-    expect(tierProgress(tier, [log({ progression_variant: 'kipping' })])).toBe(0);
+    const t = tier({ rank: 'master', criteria: [{ criterionType: 'variant', threshold: null, variantMatch: 'one_arm' }] });
+    expect(tierProgress(t, [log({ progression_variant: 'one_arm' })])).toBe(1);
+    expect(tierProgress(t, [log({ progression_variant: 'kipping' })])).toBe(0);
   });
 
   it('prend le meilleur des chemins OU (le plus avancé des deux critères)', () => {
-    const tier: SkillTierWithCriteria = {
-      id: 't',
+    const t = tier({
       rank: 'gold',
       criteria: [
         { criterionType: 'reps', threshold: 10, variantMatch: 'strict' },
         { criterionType: 'variant', threshold: null, variantMatch: 'one_arm' },
       ],
-    };
+    });
     // 8/10 tractions strictes = 0.8, bien plus avancé que le chemin one_arm (0).
-    expect(tierProgress(tier, [log({ reps: 8, progression_variant: 'strict' })])).toBeCloseTo(0.8);
+    expect(tierProgress(t, [log({ reps: 8, progression_variant: 'strict' })])).toBeCloseTo(0.8);
   });
 
   it('ne filtre que sur les logs correspondant à la variante requise pour le calcul du ratio', () => {
-    const tier: SkillTierWithCriteria = {
-      id: 't',
-      rank: 'silver',
-      criteria: [{ criterionType: 'hold_seconds', threshold: 10, variantMatch: 'full' }],
-    };
+    const t = tier({ rank: 'silver', criteria: [{ criterionType: 'hold_seconds', threshold: 10, variantMatch: 'full' }] });
     const logs = [log({ hold_seconds: 20, progression_variant: 'tuck' }), log({ hold_seconds: 3, progression_variant: 'full' })];
     // Le hold de 20s en "tuck" ne compte pas pour le seuil "full" : seul le log full (3s) compte.
-    expect(tierProgress(tier, logs)).toBeCloseTo(0.3);
+    expect(tierProgress(t, logs)).toBeCloseTo(0.3);
   });
 });

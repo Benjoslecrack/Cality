@@ -28,8 +28,16 @@ export type TierCriterion = {
 export type SkillTierWithCriteria = {
   id: string;
   rank: SkillRank;
+  subLevel: number; // 1/2/3 (I/II/III) : chaque rang macro se subdivise en 3 paliers.
   criteria: TierCriterion[];
 };
+
+// Position globale 0-14 (rang_index*3 + (sous-niveau-1)) : ordre total sur
+// les 15 paliers d'un skill, utilisé pour trier/comparer sans dépendre de
+// l'ordre d'arrivée des lignes en base.
+export function tierPosition(tier: Pick<SkillTierWithCriteria, 'rank' | 'subLevel'>): number {
+  return rankIndex(tier.rank) * 3 + (tier.subLevel - 1);
+}
 
 function variantContains(log: RankableLog, needle: string): boolean {
   return log.progression_variant != null && log.progression_variant.toLowerCase().includes(needle.toLowerCase());
@@ -79,15 +87,27 @@ export function currentRank(unlockedRanks: SkillRank[]): SkillRank | null {
   return unlockedRanks.reduce((highest, rank) => (isHigherRank(rank, highest) ? rank : highest));
 }
 
-// Premier palier non débloqué, dans l'ordre Fer -> Maître : la "prochaine
-// étape" mise en avant sur la carte/l'écran détail. null si Maître est déjà
-// atteint.
+// Premier palier non débloqué, dans l'ordre Fer I -> Maître III : la
+// "prochaine étape" mise en avant sur la carte/l'écran détail. null si
+// Maître III est déjà atteint.
 export function nextLockedTier<T extends SkillTierWithCriteria>(
   tiers: T[],
   unlockedTierIds: ReadonlySet<string>
 ): T | null {
-  const sorted = [...tiers].sort((a, b) => rankIndex(a.rank) - rankIndex(b.rank));
+  const sorted = [...tiers].sort((a, b) => tierPosition(a) - tierPosition(b));
   return sorted.find((tier) => !unlockedTierIds.has(tier.id)) ?? null;
+}
+
+// Le palier débloqué le plus avancé (position la plus haute), pour afficher
+// un badge combinant rang macro + sous-niveau (ex. "Bronze II"). null si
+// aucun palier n'est encore débloqué.
+export function highestUnlockedTier<T extends SkillTierWithCriteria>(
+  tiers: T[],
+  unlockedTierIds: ReadonlySet<string>
+): T | null {
+  const unlocked = tiers.filter((tier) => unlockedTierIds.has(tier.id));
+  if (unlocked.length === 0) return null;
+  return unlocked.reduce((top, tier) => (tierPosition(tier) > tierPosition(top) ? tier : top));
 }
 
 // Progression (0 à 1) vers un palier non encore débloqué : pour un critère

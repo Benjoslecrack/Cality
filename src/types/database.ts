@@ -272,6 +272,8 @@ export interface Database {
           id: string;
           skill_id: string;
           rank: SkillRank;
+          sub_level: number;
+          position: number;
           label: string;
           created_at: string;
           updated_at: string;
@@ -280,6 +282,8 @@ export interface Database {
           id?: string;
           skill_id: string;
           rank: SkillRank;
+          sub_level?: number;
+          position?: number;
           label: string;
         };
         Update: {

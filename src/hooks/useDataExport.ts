@@ -7,8 +7,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { buildExerciseLogsCsv, type ExerciseLogExportRow } from '../lib/csvExport';
 import { buildProgressSummaryHtml, type SkillSummary } from '../lib/pdfExport';
 import { progressPoint } from '../lib/progressValue';
-import { RANK_LABELS } from '../lib/rankPresentation';
-import { currentRank } from '../lib/skillRanks';
+import { formatRankLabel } from '../lib/rankPresentation';
+import { highestUnlockedTier } from '../lib/skillRanks';
 import { todayDateKey } from '../lib/dateUtils';
 import { aggregateWeeklyBest } from '../lib/weeklyAggregate';
 import type { ExerciseType, SkillRank } from '../types/database';
@@ -86,7 +86,12 @@ export function useExportLogsCsv() {
   });
 }
 
-type RawSkillRow = { id: string; name: string; position: number; skill_tiers: { id: string; rank: SkillRank }[] };
+type RawSkillRow = {
+  id: string;
+  name: string;
+  position: number;
+  skill_tiers: { id: string; rank: SkillRank; sub_level: number }[];
+};
 
 type SkillLogRow = {
   skill_id: string | null;
@@ -110,7 +115,7 @@ export function useExportProgressPdf() {
     mutationFn: async () => {
       const { data: skills, error: skillsError } = await supabase
         .from('skills')
-        .select('id, name, position, skill_tiers(id, rank)')
+        .select('id, name, position, skill_tiers(id, rank, sub_level)')
         .order('position', { ascending: true })
         .returns<RawSkillRow[]>();
       if (skillsError) throw skillsError;
@@ -148,14 +153,19 @@ export function useExportProgressPdf() {
         const weeklyTrend = aggregateWeeklyBest(skillLogs, 3);
 
         const unlockedTierIds = unlockedTierIdsBySkill.get(skill.id) ?? new Set<string>();
-        const unlockedRanks = skill.skill_tiers.filter((tier) => unlockedTierIds.has(tier.id)).map((tier) => tier.rank);
-        const rank = currentRank(unlockedRanks);
+        const tiersForRank = skill.skill_tiers.map((tier) => ({
+          id: tier.id,
+          rank: tier.rank,
+          subLevel: tier.sub_level,
+          criteria: [],
+        }));
+        const highest = highestUnlockedTier(tiersForRank, unlockedTierIds);
 
         return {
           label: skill.name,
           latest,
           weeklyTrend,
-          rankLabel: rank ? RANK_LABELS[rank] : null,
+          rankLabel: highest ? formatRankLabel(highest.rank, highest.subLevel) : null,
           unlockedCount: unlockedTierIds.size,
           totalMilestones: skill.skill_tiers.length,
         };

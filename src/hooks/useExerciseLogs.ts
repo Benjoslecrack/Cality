@@ -2,8 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { isRecordBeaten, progressPoint } from '../lib/progressValue';
-import { evaluateSkillRankUps } from './useSkillRanks';
-import type { SkillTierWithCriteria } from '../lib/skillRanks';
+import { evaluateSkillRankUps, type RankUpResult } from './useSkillRanks';
 import type { ExerciseType, SkillKey } from '../types/database';
 
 export function useExerciseLogsQuery(workoutLogId: string) {
@@ -103,12 +102,12 @@ export function useAddExerciseSet(workoutLogId: string) {
       });
       const isNewRecord = isRecordBeaten(newPoint?.value ?? null, priorBest);
 
-      let newlyUnlockedTiers: SkillTierWithCriteria[] = [];
+      let rankUp: RankUpResult = { newlyUnlockedTiers: [], previousRank: null, newRank: null };
       if (input.skillId) {
-        newlyUnlockedTiers = await evaluateSkillRankUps(userId!, input.skillId, row.id);
+        rankUp = await evaluateSkillRankUps(userId!, input.skillId, row.id);
       }
 
-      return { row, isNewRecord, newlyUnlockedTiers };
+      return { row, isNewRecord, rankUp };
     },
     onSuccess: (_data, input) => {
       queryClient.invalidateQueries({ queryKey: ['exercise_logs', workoutLogId] });

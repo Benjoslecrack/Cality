@@ -12,10 +12,11 @@ import { usePlannedExercisesQuery, useWorkoutLogQuery } from '../../hooks/useWor
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget } from '../../lib/exerciseFormat';
 import { isDataConflictError } from '../../lib/queryClient';
 import { useSuggestedSet } from '../../hooks/useSuggestedSet';
-import { RANK_COLORS, RANK_LABELS } from '../../lib/rankPresentation';
-import { isHigherRank } from '../../lib/skillRanks';
+import { formatRankLabel, RANK_COLORS, RANK_LABELS } from '../../lib/rankPresentation';
+import { tierPosition } from '../../lib/skillRanks';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
-import type { SkillRank } from '../../types/database';
+
+type TierFlash = { color: string; label: string; isRankUp: boolean };
 
 type Props = {
   route: { params: { workoutLogId: string } };
@@ -55,7 +56,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
   const [hold, setHold] = useState(20);
   const [variant, setVariant] = useState('');
   const [wasRecord, setWasRecord] = useState(false);
-  const [rankUp, setRankUp] = useState<SkillRank | null>(null);
+  const [tierFlash, setTierFlash] = useState<TierFlash | null>(null);
 
   useEffect(() => {
     if (stepIndex === null && !isLoadingLogs) setStepIndex(resumeIndex);
@@ -138,7 +139,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
     // sans bloquer le déroulé du mode guidé.
     restTimer.start(exercise.target_rest_seconds ?? DEFAULT_REST_SECONDS, exercise.name);
     setWasRecord(false);
-    setRankUp(null);
+    setTierFlash(null);
     setPhase('logged');
 
     addSet.mutate(
@@ -154,11 +155,20 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
         progression_variant: exercise.type === 'progression' ? variant.trim() || null : null,
       },
       {
-        onSuccess: ({ isNewRecord, newlyUnlockedTiers }) => {
+        onSuccess: ({ isNewRecord, rankUp }) => {
           setWasRecord(isNewRecord);
-          if (newlyUnlockedTiers.length > 0) {
-            const highest = newlyUnlockedTiers.reduce((top, tier) => (isHigherRank(tier.rank, top.rank) ? tier : top));
-            setRankUp(highest.rank);
+          if (rankUp.newlyUnlockedTiers.length > 0) {
+            const highest = rankUp.newlyUnlockedTiers.reduce((top, tier) =>
+              tierPosition(tier) > tierPosition(top) ? tier : top
+            );
+            const isRankUp = rankUp.previousRank !== rankUp.newRank;
+            setTierFlash({
+              color: RANK_COLORS[highest.rank],
+              label: isRankUp
+                ? `Nouveau rang : ${RANK_LABELS[highest.rank]}`
+                : `Nouveau palier : ${formatRankLabel(highest.rank, highest.subLevel)}`,
+              isRankUp,
+            });
           }
         },
         onError: (error) => {
@@ -242,15 +252,15 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
                 <SteelBar progress={1} justRecorded />
               </View>
             ) : null}
-            {rankUp ? (
+            {tierFlash ? (
               <View className="mb-4">
-                <Text className="mb-1.5 font-bodySemibold text-sm" style={{ color: RANK_COLORS[rankUp] }}>
-                  Nouveau rang : {RANK_LABELS[rankUp]}
+                <Text className="mb-1.5 font-bodySemibold text-sm" style={{ color: tierFlash.color }}>
+                  {tierFlash.label}
                 </Text>
-                <SteelBar progress={1} justRanked fillColors={[COLORS.textMuted, RANK_COLORS[rankUp]]} />
+                <SteelBar progress={1} justRanked={tierFlash.isRankUp} fillColors={[COLORS.textMuted, tierFlash.color]} />
               </View>
             ) : null}
-            {!wasRecord && !rankUp ? <Text className="mb-4 font-body text-textMuted">Série enregistrée.</Text> : null}
+            {!wasRecord && !tierFlash ? <Text className="mb-4 font-body text-textMuted">Série enregistrée.</Text> : null}
             <Pressable
               onPress={handleNext}
               className="min-h-11 items-center justify-center rounded-xl bg-accent py-4"

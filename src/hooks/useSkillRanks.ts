@@ -1,7 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { findNewlyUnlockedTiers, RANK_ORDER, type RankableLog, type SkillTierWithCriteria } from '../lib/skillRanks';
+import {
+  currentRank,
+  findNewlyUnlockedTiers,
+  tierPosition,
+  type RankableLog,
+  type SkillTierWithCriteria,
+} from '../lib/skillRanks';
 import type { ExerciseType, SkillCriterionType, SkillRank } from '../types/database';
 
 export type SkillTierDetail = SkillTierWithCriteria & { label: string };
@@ -24,6 +30,7 @@ type RawSkillRow = {
   skill_tiers: {
     id: string;
     rank: SkillRank;
+    sub_level: number;
     label: string;
     skill_tier_criteria: { criterion_type: SkillCriterionType; threshold: number | null; variant_match: string | null }[];
   }[];
@@ -38,7 +45,7 @@ export function useSkillCatalogQuery() {
     queryFn: async (): Promise<SkillCatalogEntry[]> => {
       const { data, error } = await supabase
         .from('skills')
-        .select('id, key, name, description, position, skill_tiers(id, rank, label, skill_tier_criteria(criterion_type, threshold, variant_match))')
+        .select('id, key, name, description, position, skill_tiers(id, rank, sub_level, label, skill_tier_criteria(criterion_type, threshold, variant_match))')
         .order('position', { ascending: true })
         .returns<RawSkillRow[]>();
       if (error) throw error;
@@ -49,18 +56,19 @@ export function useSkillCatalogQuery() {
         name: skill.name,
         description: skill.description,
         position: skill.position,
-        tiers: [...skill.skill_tiers]
-          .sort((a, b) => RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank))
+        tiers: skill.skill_tiers
           .map((tier) => ({
             id: tier.id,
             rank: tier.rank,
+            subLevel: tier.sub_level,
             label: tier.label,
             criteria: tier.skill_tier_criteria.map((c) => ({
               criterionType: c.criterion_type,
               threshold: c.threshold,
               variantMatch: c.variant_match,
             })),
-          })),
+          }))
+          .sort((a, b) => tierPosition(a) - tierPosition(b)),
       }));
     },
   });
@@ -199,7 +207,19 @@ export function useSkillLogsQuery(skillId: string | null) {
 type RawTierRow = {
   id: string;
   rank: SkillRank;
+  sub_level: number;
   skill_tier_criteria: { criterion_type: SkillCriterionType; threshold: number | null; variant_match: string | null }[];
+};
+
+export type RankUpResult = {
+  // Tous les paliers nouvellement débloqués (souvent un seul, mais une perf
+  // qui dépasse plusieurs seuils d'un coup peut en valider plusieurs).
+  newlyUnlockedTiers: SkillTierWithCriteria[];
+  // Rang macro avant/après : sert à distinguer "juste un nouveau palier au
+  // sein du même rang" (la barre avance, pas d'habillage particulier) de "un
+  // nouveau rang macro" (badge de rang + flash distinct), cf. brief v4.
+  previousRank: SkillRank | null;
+  newRank: SkillRank | null;
 };
 
 // Appelée après l'insertion d'un exercise_log tagué à un skill (cf.
@@ -211,10 +231,10 @@ export async function evaluateSkillRankUps(
   userId: string,
   skillId: string,
   newExerciseLogId: string
-): Promise<SkillTierWithCriteria[]> {
+): Promise<RankUpResult> {
   const { data: tiersData, error: tiersError } = await supabase
     .from('skill_tiers')
-    .select('id, rank, skill_tier_criteria(criterion_type, threshold, variant_match)')
+    .select('id, rank, sub_level, skill_tier_criteria(criterion_type, threshold, variant_match)')
     .eq('skill_id', skillId)
     .returns<RawTierRow[]>();
   if (tiersError) throw tiersError;
@@ -222,6 +242,7 @@ export async function evaluateSkillRankUps(
   const tiers: SkillTierWithCriteria[] = tiersData.map((tier) => ({
     id: tier.id,
     rank: tier.rank,
+    subLevel: tier.sub_level,
     criteria: tier.skill_tier_criteria.map((c) => ({
       criterionType: c.criterion_type,
       threshold: c.threshold,
@@ -243,9 +264,12 @@ export async function evaluateSkillRankUps(
     .eq('skill_id', skillId);
   if (unlockedError) throw unlockedError;
   const alreadyUnlocked = new Set(unlockedRows.map((row) => row.skill_tier_id));
+  const previousRank = currentRank(tiers.filter((tier) => alreadyUnlocked.has(tier.id)).map((tier) => tier.rank));
 
   const newlyUnlocked = findNewlyUnlockedTiers(tiers, logs, alreadyUnlocked);
-  if (newlyUnlocked.length === 0) return [];
+  if (newlyUnlocked.length === 0) {
+    return { newlyUnlockedTiers: [], previousRank, newRank: previousRank };
+  }
 
   const { error: insertError } = await supabase.from('user_skill_progress').upsert(
     newlyUnlocked.map((tier) => ({
@@ -258,5 +282,8 @@ export async function evaluateSkillRankUps(
   );
   if (insertError) throw insertError;
 
-  return newlyUnlocked;
+  const allUnlockedIds = new Set([...alreadyUnlocked, ...newlyUnlocked.map((tier) => tier.id)]);
+  const newRank = currentRank(tiers.filter((tier) => allUnlockedIds.has(tier.id)).map((tier) => tier.rank));
+
+  return { newlyUnlockedTiers: newlyUnlocked, previousRank, newRank };
 }

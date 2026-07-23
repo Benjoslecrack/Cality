@@ -8,8 +8,8 @@ import { SteelBar } from '../../components/SteelBar';
 import { useSkillCatalogQuery, useSkillLogsQuery, useUserSkillProgressQuery } from '../../hooks/useSkillRanks';
 import { formatSetValue } from '../../lib/exerciseFormat';
 import { progressPoint } from '../../lib/progressValue';
-import { RANK_COLORS, RANK_LABELS } from '../../lib/rankPresentation';
-import { currentRank, nextLockedTier, tierProgress } from '../../lib/skillRanks';
+import { formatRankLabel, RANK_COLORS } from '../../lib/rankPresentation';
+import { highestUnlockedTier, nextLockedTier, tierProgress } from '../../lib/skillRanks';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
 import type { SkillsStackParamList } from '../../navigation/SkillsStack';
 
@@ -62,16 +62,19 @@ export function SkillDetailScreen({ route }: Props) {
     );
   }
 
-  const rank = currentRank(skill.tiers.filter((tier) => unlockedTierIds.has(tier.id)).map((tier) => tier.rank));
+  const highest = highestUnlockedTier(skill.tiers, unlockedTierIds);
   const next = nextLockedTier(skill.tiers, unlockedTierIds);
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-6 pb-12 pt-6">
-      <RankBadge rank={rank} />
+      <RankBadge rank={highest?.rank ?? null} subLevel={highest?.subLevel} />
 
       {next ? (
         <View style={CARD_SHADOW} className="mb-6 mt-3 rounded-2xl bg-surface p-4">
           <Text className="font-bodyMedium text-sm text-textMuted">Prochain objectif</Text>
+          <Text className="mt-1 font-bodyMedium text-xs" style={{ color: RANK_COLORS[next.rank] }}>
+            {formatRankLabel(next.rank, next.subLevel)}
+          </Text>
           <Text className="mt-1 font-display text-2xl text-text">{next.label}</Text>
           <View className="mt-3">
             <SteelBar progress={tierProgress(next, logs ?? [])} fillColors={[COLORS.textMuted, RANK_COLORS[next.rank]]} />
@@ -80,7 +83,7 @@ export function SkillDetailScreen({ route }: Props) {
       ) : (
         <View style={CARD_SHADOW} className="mb-6 mt-3 items-center rounded-2xl bg-surface p-6">
           <Text className="text-center font-bodySemibold text-base text-accent">
-            Rang Maître atteint sur ce skill. Bravo !
+            Rang Maître III atteint sur ce skill. Bravo !
           </Text>
         </View>
       )}
@@ -103,7 +106,7 @@ export function SkillDetailScreen({ route }: Props) {
               />
               <View className="ml-3 flex-1">
                 <Text className="font-bodyMedium text-xs" style={{ color: RANK_COLORS[tier.rank] }}>
-                  {RANK_LABELS[tier.rank]}
+                  {formatRankLabel(tier.rank, tier.subLevel)}
                 </Text>
                 <Text className="font-body text-sm text-text">{tier.label}</Text>
               </View>

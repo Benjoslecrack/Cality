@@ -13,8 +13,8 @@ import {
   useUserSkillSelectionQuery,
   type SkillCatalogEntry,
 } from '../../hooks/useSkillRanks';
-import { RANK_COLORS, RANK_LABELS } from '../../lib/rankPresentation';
-import { currentRank, nextLockedTier, tierProgress } from '../../lib/skillRanks';
+import { formatRankLabel, RANK_COLORS } from '../../lib/rankPresentation';
+import { highestUnlockedTier, nextLockedTier, tierProgress } from '../../lib/skillRanks';
 import { aggregateWeeklySetCount } from '../../lib/weeklyAggregate';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
 import type { SkillsStackParamList } from '../../navigation/SkillsStack';
@@ -127,11 +127,10 @@ function SkillCard({
 }) {
   const { data: logs } = useSkillLogsQuery(skill.id);
 
-  const { rank, next, progress } = useMemo(() => {
-    const unlockedRanks = skill.tiers.filter((tier) => unlockedTierIds.has(tier.id)).map((tier) => tier.rank);
+  const { highest, next, progress } = useMemo(() => {
     const nextTier = nextLockedTier(skill.tiers, unlockedTierIds);
     return {
-      rank: currentRank(unlockedRanks),
+      highest: highestUnlockedTier(skill.tiers, unlockedTierIds),
       next: nextTier,
       progress: nextTier ? tierProgress(nextTier, logs ?? []) : 1,
     };
@@ -140,14 +139,14 @@ function SkillCard({
   return (
     <Pressable onPress={onPress} style={CARD_SHADOW} className="mb-3 w-[48%] rounded-2xl bg-surface p-4">
       <Text className="mb-2 font-bodySemibold text-base text-text">{skill.name}</Text>
-      <RankBadge rank={rank} />
+      <RankBadge rank={highest?.rank ?? null} subLevel={highest?.subLevel} />
       <View className="mt-3">
         <SteelBar
           progress={progress}
           fillColors={next ? [COLORS.textMuted, RANK_COLORS[next.rank]] : [RANK_COLORS.master, RANK_COLORS.master]}
         />
         <Text className="mt-1.5 font-body text-xs text-textMuted" numberOfLines={1}>
-          {next ? `Prochain : ${RANK_LABELS[next.rank]}` : 'Maître atteint'}
+          {next ? `Prochain : ${formatRankLabel(next.rank, next.subLevel)}` : 'Maître III atteint'}
         </Text>
       </View>
     </Pressable>
