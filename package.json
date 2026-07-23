@@ -17,10 +17,13 @@
     "@tanstack/react-query-persist-client": "^5.101.4",
     "expo": "~57.0.7",
     "expo-crypto": "57.0.1",
+    "expo-file-system": "~57.0.1",
     "expo-font": "57.0.1",
     "expo-haptics": "57.0.1",
     "expo-linear-gradient": "57.0.1",
     "expo-linking": "^57.0.3",
+    "expo-print": "~57.0.1",
+    "expo-sharing": "~57.0.6",
     "expo-splash-screen": "57.0.5",
     "expo-sqlite": "57.0.1",
     "expo-status-bar": "~57.0.1",
@@ -56,6 +59,9 @@
   "private": true,
   "jest": {
     "preset": "jest-expo",
-    "testPathIgnorePatterns": ["/node_modules/", "/scripts/"]
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/scripts/"
+    ]
   }
 }

@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'rea
 import { Button } from '../components/Button';
 import { TextField } from '../components/TextField';
 import { useAuth } from '../contexts/AuthContext';
+import { useExportLogsCsv, useExportProgressPdf } from '../hooks/useDataExport';
 import { useProfile, useUpdateProfile } from '../hooks/useProfile';
 import { SKILLS } from '../lib/skills';
 import type { SkillKey } from '../types/database';
@@ -11,6 +12,8 @@ export function ProfileScreen() {
   const { session, signOut } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
+  const exportCsv = useExportLogsCsv();
+  const exportPdf = useExportProgressPdf();
 
   const [username, setUsername] = useState('');
   const [goals, setGoals] = useState<SkillKey[]>([]);
@@ -38,6 +41,18 @@ export function ProfileScreen() {
         onError: (error) => Alert.alert('Erreur', (error as Error).message),
       }
     );
+  };
+
+  const handleExportCsv = () => {
+    exportCsv.mutate(undefined, {
+      onError: (error) => Alert.alert('Erreur', (error as Error).message),
+    });
+  };
+
+  const handleExportPdf = () => {
+    exportPdf.mutate(undefined, {
+      onError: (error) => Alert.alert('Erreur', (error as Error).message),
+    });
   };
 
   if (isLoading) {
@@ -73,12 +88,28 @@ export function ProfileScreen() {
         })}
       </View>
 
-      <View className="mb-4">
+      <View className="mb-8">
         <Button
           label="Enregistrer"
           onPress={handleSave}
           loading={updateProfile.isPending}
           disabled={!hasChanges}
+        />
+      </View>
+
+      <Text className="mb-3 text-sm font-medium text-textMuted">Mes données</Text>
+      <View className="mb-8 gap-3">
+        <Button
+          label="Exporter mon historique (CSV)"
+          variant="secondary"
+          onPress={handleExportCsv}
+          loading={exportCsv.isPending}
+        />
+        <Button
+          label="Exporter ma progression (PDF)"
+          variant="secondary"
+          onPress={handleExportPdf}
+          loading={exportPdf.isPending}
         />
       </View>
 
