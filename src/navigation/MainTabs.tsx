@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { COLORS } from '../theme/tokens';
 import { CalendarStack } from './CalendarStack';
@@ -27,8 +26,6 @@ const ICONS: Record<keyof MainTabParamList, keyof typeof Ionicons.glyphMap> = {
 };
 
 export function MainTabs() {
-  const insets = useSafeAreaInsets();
-
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -36,19 +33,9 @@ export function MainTabs() {
         headerTintColor: COLORS.textPrimary,
         headerShadowVisible: false,
         tabBarStyle: {
-          marginHorizontal: 16,
-          marginBottom: insets.bottom + 12,
-          height: 64,
-          borderRadius: 32,
           backgroundColor: COLORS.bgSurface,
           borderTopWidth: 0,
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.4,
-          shadowRadius: 14,
-          elevation: 8,
         },
-        tabBarItemStyle: { height: 64, paddingVertical: 8 },
         tabBarActiveTintColor: COLORS.accent,
         tabBarInactiveTintColor: COLORS.textMuted,
         tabBarIcon: ({ color, size }) => (
