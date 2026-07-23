@@ -60,7 +60,7 @@ export function SkillsListScreen({ navigation }: Props) {
       <Pressable
         onPress={() => navigation.navigate('PhotoTimeline')}
         style={CARD_SHADOW}
-        className="mb-1 flex-row items-center justify-between rounded-2xl bg-surface p-4"
+        className="mb-1 flex-row items-center justify-between border-2 border-border bg-surface p-4"
       >
         <View className="flex-row items-center gap-3">
           <Ionicons name="images-outline" size={20} color={COLORS.neonCyan} />
@@ -72,7 +72,7 @@ export function SkillsListScreen({ navigation }: Props) {
       <Pressable
         onPress={() => navigation.navigate('SkillSelection')}
         style={CARD_SHADOW}
-        className="mb-2 flex-row items-center justify-between rounded-2xl bg-surface p-4"
+        className="mb-2 flex-row items-center justify-between border-2 border-border bg-surface p-4"
       >
         <View className="flex-row items-center gap-3">
           <Ionicons name="options-outline" size={20} color={COLORS.neonCyan} />
@@ -82,7 +82,7 @@ export function SkillsListScreen({ navigation }: Props) {
       </Pressable>
 
       {weeklyVolume.length > 1 ? (
-        <View style={CARD_SHADOW} className="mb-1 rounded-2xl bg-surface p-4">
+        <View style={CARD_SHADOW} className="mb-1 border-2 border-border bg-surface p-4">
           <Text className="mb-3 font-bodyMedium text-sm text-textMuted">
             Volume d'entraînement — séries par semaine
           </Text>
@@ -91,7 +91,7 @@ export function SkillsListScreen({ navigation }: Props) {
       ) : null}
 
       {visibleSkills.length === 0 && !showAll ? (
-        <View style={CARD_SHADOW} className="items-center rounded-2xl bg-surface p-6">
+        <View style={CARD_SHADOW} className="items-center border-2 border-border bg-surface p-6">
           <Text className="text-center font-body text-textMuted">
             Aucun skill actif pour l'instant. Choisis ceux que tu travailles en ce moment.
           </Text>
@@ -139,7 +139,7 @@ function SkillCard({
   }, [skill, unlockedTierIds, logs]);
 
   return (
-    <Pressable onPress={onPress} style={CARD_SHADOW} className="mb-3 w-[48%] rounded-2xl bg-surface p-4">
+    <Pressable onPress={onPress} style={CARD_SHADOW} className="mb-3 w-[48%] border-2 border-border bg-surface p-4">
       <Text className="mb-2 font-bodySemibold text-base text-text">{skill.name}</Text>
       <RankBadge rank={highest?.rank ?? null} subLevel={highest?.subLevel} />
       <View className="mt-3">

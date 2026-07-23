@@ -33,7 +33,7 @@ export function SkillSelectionScreen() {
           <View
             key={skill.id}
             style={CARD_SHADOW}
-            className="flex-row items-center justify-between rounded-2xl bg-surface p-4"
+            className="flex-row items-center justify-between border-2 border-border bg-surface p-4"
           >
             <Text className="flex-1 pr-3 font-bodyMedium text-base text-text">{skill.name}</Text>
             <Switch
