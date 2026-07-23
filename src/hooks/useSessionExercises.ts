@@ -11,9 +11,12 @@ export type SessionExerciseInput = {
   target_reps: number | null;
   target_weight_kg: number | null;
   target_hold_seconds: number | null;
+  target_rest_seconds: number | null;
   progression_variant: string | null;
   notes: string | null;
 };
+
+export const DEFAULT_REST_SECONDS = 90;
 
 export function useSessionExercisesQuery(programSessionId: string | undefined) {
   return useQuery({

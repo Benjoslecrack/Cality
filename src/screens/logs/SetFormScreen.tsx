@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
+import { useRestTimer } from '../../contexts/RestTimerContext';
 import { useAddExerciseSet, useUpdateExerciseSet, useDeleteExerciseSet } from '../../hooks/useExerciseLogs';
+import { DEFAULT_REST_SECONDS } from '../../hooks/useSessionExercises';
 import type { ExerciseType, SkillKey } from '../../types/database';
 
 export type SetFormParams = {
@@ -37,6 +39,7 @@ export function SetFormScreen({ navigation, route }: Props) {
   const addSet = useAddExerciseSet(workoutLogId);
   const updateSet = useUpdateExerciseSet(workoutLogId);
   const deleteSet = useDeleteExerciseSet(workoutLogId);
+  const restTimer = useRestTimer();
   const isSaving = addSet.isPending || updateSet.isPending;
 
   const handleSave = async () => {
@@ -58,6 +61,9 @@ export function SetFormScreen({ navigation, route }: Props) {
           skillKey,
           ...values,
         });
+        // Premier ajout d'un exercice à la volée : pas de plan pour connaître
+        // un repos dédié, on démarre avec la valeur par défaut de l'app.
+        restTimer.start(DEFAULT_REST_SECONDS, exerciseName);
       }
       navigation.goBack();
     } catch (error) {

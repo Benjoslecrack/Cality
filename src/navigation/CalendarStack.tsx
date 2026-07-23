@@ -4,7 +4,9 @@ import { DayDetailScreen } from '../screens/calendar/DayDetailScreen';
 import { SessionPickerScreen } from '../screens/calendar/SessionPickerScreen';
 import { WorkoutLogScreen } from '../screens/logs/WorkoutLogScreen';
 import { AddLogExerciseScreen } from '../screens/logs/AddLogExerciseScreen';
+import { GuidedSessionScreen } from '../screens/logs/GuidedSessionScreen';
 import { SetFormScreen, type SetFormParams } from '../screens/logs/SetFormScreen';
+import { COLORS } from '../theme/tokens';
 
 export type CalendarStackParamList = {
   CalendarMonth: undefined;
@@ -12,6 +14,7 @@ export type CalendarStackParamList = {
   SessionPicker: { dateKey: string };
   WorkoutLog: { workoutLogId: string };
   AddLogExercise: { workoutLogId: string };
+  GuidedSession: { workoutLogId: string };
   SetForm: SetFormParams;
 };
 
@@ -21,10 +24,10 @@ export function CalendarStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#0B0D10' },
-        headerTintColor: '#F5F6F7',
+        headerStyle: { backgroundColor: COLORS.bgBase },
+        headerTintColor: COLORS.textPrimary,
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: '#0B0D10' },
+        contentStyle: { backgroundColor: COLORS.bgBase },
       }}
     >
       <Stack.Screen name="CalendarMonth" component={CalendarMonthScreen} options={{ title: 'Calendrier' }} />
@@ -36,6 +39,7 @@ export function CalendarStack() {
         component={AddLogExerciseScreen}
         options={{ title: 'Nouvel exercice', presentation: 'modal' }}
       />
+      <Stack.Screen name="GuidedSession" component={GuidedSessionScreen} options={{ title: 'Mode guidé' }} />
       <Stack.Screen name="SetForm" component={SetFormScreen} options={{ title: 'Série', presentation: 'modal' }} />
     </Stack.Navigator>
   );

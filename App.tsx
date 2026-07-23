@@ -19,6 +19,7 @@ import {
   JetBrainsMono_700Bold,
 } from '@expo-google-fonts/jetbrains-mono';
 import { AuthProvider } from './src/contexts/AuthContext';
+import { RestTimerProvider } from './src/contexts/RestTimerContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { COLORS } from './src/theme/tokens';
 
@@ -62,8 +63,10 @@ export default function App() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <StatusBar style="light" />
-          <RootNavigator />
+          <RestTimerProvider>
+            <StatusBar style="light" />
+            <RootNavigator />
+          </RestTimerProvider>
         </AuthProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

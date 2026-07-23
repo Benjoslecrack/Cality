@@ -84,6 +84,7 @@ export interface Database {
           target_reps: number | null;
           target_weight_kg: number | null;
           target_hold_seconds: number | null;
+          target_rest_seconds: number | null;
           progression_variant: string | null;
           notes: string | null;
           created_at: string;
@@ -101,6 +102,7 @@ export interface Database {
           target_reps?: number | null;
           target_weight_kg?: number | null;
           target_hold_seconds?: number | null;
+          target_rest_seconds?: number | null;
           progression_variant?: string | null;
           notes?: string | null;
         };
@@ -113,6 +115,7 @@ export interface Database {
           target_reps?: number | null;
           target_weight_kg?: number | null;
           target_hold_seconds?: number | null;
+          target_rest_seconds?: number | null;
           progression_variant?: string | null;
           notes?: string | null;
         };

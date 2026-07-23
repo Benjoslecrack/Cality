@@ -9,34 +9,11 @@ import {
   useUpdateWorkoutLog,
   useWorkoutLogQuery,
 } from '../../hooks/useWorkoutLogs';
-import { EXERCISE_TYPE_LABELS, formatExerciseTarget, formatSetValue } from '../../lib/exerciseFormat';
+import { DEFAULT_REST_SECONDS } from '../../hooks/useSessionExercises';
 import { formatDayLabel } from '../../lib/dateUtils';
-import { skillLabel } from '../../lib/skills';
+import { COLORS } from '../../theme/tokens';
 import type { ExerciseType, SkillKey } from '../../types/database';
-
-type ExerciseCard = {
-  key: string;
-  name: string;
-  type: ExerciseType;
-  skillKey: SkillKey | null;
-  sessionExerciseId: string | null;
-  target?: {
-    type: ExerciseType;
-    target_sets: number;
-    target_reps: number | null;
-    target_weight_kg: number | null;
-    target_hold_seconds: number | null;
-    progression_variant: string | null;
-  };
-  sets: {
-    id: string;
-    set_number: number;
-    reps: number | null;
-    weight_kg: number | null;
-    hold_seconds: number | null;
-    progression_variant: string | null;
-  }[];
-};
+import { ExerciseLogCard, type ExerciseCardData } from './ExerciseLogCard';
 
 type Props = {
   route: { params: { workoutLogId: string } };
@@ -60,13 +37,14 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
     if (workoutLog) setNotes(workoutLog.notes ?? '');
   }, [workoutLog]);
 
-  const cards = useMemo<ExerciseCard[]>(() => {
-    const cardList: ExerciseCard[] = (plannedExercises ?? []).map((exercise) => ({
+  const cards = useMemo<ExerciseCardData[]>(() => {
+    const cardList: ExerciseCardData[] = (plannedExercises ?? []).map((exercise) => ({
       key: exercise.id,
       name: exercise.name,
       type: exercise.type,
       skillKey: exercise.skill_key,
       sessionExerciseId: exercise.id,
+      restSeconds: exercise.target_rest_seconds ?? DEFAULT_REST_SECONDS,
       target: {
         type: exercise.type,
         target_sets: exercise.target_sets,
@@ -90,6 +68,7 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
           type: log.type,
           skillKey: log.skill_key,
           sessionExerciseId: log.session_exercise_id,
+          restSeconds: DEFAULT_REST_SECONDS,
           sets: [],
         };
         cardList.push(card);
@@ -109,6 +88,23 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
   }, [plannedExercises, exerciseLogs]);
 
   const notesChanged = workoutLog && notes !== (workoutLog.notes ?? '');
+  const hasPlan = (plannedExercises?.length ?? 0) > 0;
+
+  const handleEditSet = (
+    card: ExerciseCardData,
+    setId: string,
+    initialValues: ExerciseCardData['sets'][number]
+  ) => {
+    navigation.navigate('SetForm', {
+      workoutLogId,
+      sessionExerciseId: card.sessionExerciseId,
+      exerciseName: card.name,
+      type: card.type,
+      skillKey: card.skillKey,
+      setId,
+      initialValues,
+    });
+  };
 
   const handleDelete = () => {
     Alert.alert(
@@ -131,85 +127,41 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
   if (isLoadingLog || isLoadingLogs || !workoutLog) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.accent} />
       </View>
     );
   }
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-6 pb-12 pt-4">
-      <Text className="text-2xl font-bold text-text">{workoutLog.session_name}</Text>
-      <Text className="mb-4 capitalize text-textMuted">{formatDayLabel(workoutLog.performed_date)}</Text>
+      <Text className="font-display text-2xl text-text">{workoutLog.session_name}</Text>
+      <Text className="mb-4 font-body capitalize text-textMuted">{formatDayLabel(workoutLog.performed_date)}</Text>
+
+      {hasPlan ? (
+        <Pressable
+          onPress={() => navigation.navigate('GuidedSession', { workoutLogId })}
+          className="mb-4 min-h-11 items-center justify-center rounded-xl border border-accentDim py-3"
+        >
+          <Text className="font-bodySemibold text-sm text-text">Démarrer en mode guidé</Text>
+        </Pressable>
+      ) : null}
 
       <View className="mb-6 gap-3">
         {cards.map((card) => (
-          <View key={card.key} className="rounded-2xl border border-border bg-surface p-4">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-base font-semibold text-text">{card.name}</Text>
-              {card.skillKey ? (
-                <View className="rounded-full border border-primary bg-primaryMuted px-2.5 py-0.5">
-                  <Text className="text-xs font-medium text-text">{skillLabel(card.skillKey)}</Text>
-                </View>
-              ) : null}
-            </View>
-            <Text className="mt-1 text-sm text-textMuted">{EXERCISE_TYPE_LABELS[card.type]}</Text>
-            {card.target ? (
-              <Text className="mt-1 text-sm text-textMuted">Objectif : {formatExerciseTarget(card.target)}</Text>
-            ) : null}
-
-            {card.sets.length > 0 ? (
-              <View className="mt-3 gap-1.5">
-                {card.sets.map((set) => (
-                  <Pressable
-                    key={set.id}
-                    onPress={() =>
-                      navigation.navigate('SetForm', {
-                        workoutLogId,
-                        sessionExerciseId: card.sessionExerciseId,
-                        exerciseName: card.name,
-                        type: card.type,
-                        skillKey: card.skillKey,
-                        setId: set.id,
-                        initialValues: {
-                          reps: set.reps,
-                          weight_kg: set.weight_kg,
-                          hold_seconds: set.hold_seconds,
-                          progression_variant: set.progression_variant,
-                        },
-                      })
-                    }
-                    className="flex-row items-center justify-between rounded-lg bg-surfaceAlt px-3 py-2"
-                  >
-                    <Text className="text-sm text-textMuted">Série {set.set_number}</Text>
-                    <Text className="text-sm text-text">{formatSetValue({ ...set, type: card.type })}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            ) : null}
-
-            <Pressable
-              onPress={() =>
-                navigation.navigate('SetForm', {
-                  workoutLogId,
-                  sessionExerciseId: card.sessionExerciseId,
-                  exerciseName: card.name,
-                  type: card.type,
-                  skillKey: card.skillKey,
-                })
-              }
-              className="mt-3 items-center rounded-lg border border-border py-2"
-            >
-              <Text className="text-sm font-medium text-text">+ Ajouter une série</Text>
-            </Pressable>
-          </View>
+          <ExerciseLogCard
+            key={card.key}
+            workoutLogId={workoutLogId}
+            card={card}
+            onEditSet={(setId, initialValues) => handleEditSet(card, setId, initialValues)}
+          />
         ))}
       </View>
 
       <Pressable
         onPress={() => navigation.navigate('AddLogExercise', { workoutLogId })}
-        className="mb-6 items-center rounded-xl border border-border bg-surface py-3.5"
+        className="mb-6 min-h-11 items-center justify-center rounded-xl bg-surface py-3.5"
       >
-        <Text className="font-medium text-text">+ Ajouter un exercice</Text>
+        <Text className="font-bodyMedium text-text">+ Ajouter un exercice</Text>
       </Pressable>
 
       <TextField

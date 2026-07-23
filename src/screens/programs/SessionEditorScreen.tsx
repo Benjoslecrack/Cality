@@ -44,6 +44,7 @@ export function SessionEditorScreen({ navigation, route }: Props) {
               target_reps: item.target_reps,
               target_weight_kg: item.target_weight_kg,
               target_hold_seconds: item.target_hold_seconds,
+              target_rest_seconds: item.target_rest_seconds,
               progression_variant: item.progression_variant,
               notes: item.notes,
             },

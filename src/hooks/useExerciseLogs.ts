@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { progressPoint } from '../lib/progressValue';
 import type { ExerciseType, SkillKey } from '../types/database';
 
 export function useExerciseLogsQuery(workoutLogId: string) {
@@ -29,6 +30,32 @@ export type AddSetInput = {
   progression_variant: string | null;
 };
 
+// Historique de référence pour la détection de record : même périmètre que
+// "Voir l'historique" (session_exercise_id si l'exercice est planifié, sinon
+// le nom pour les ajouts à la volée) — un variant différent d'un même skill
+// (ex. muscle-up kipping vs strict) n'est pas comparé au même record.
+async function fetchPriorBestValue(
+  userId: string,
+  type: ExerciseType,
+  sessionExerciseId: string | null,
+  exerciseName: string
+): Promise<number | null> {
+  let query = supabase.from('exercise_logs').select('reps, weight_kg, hold_seconds').eq('user_id', userId);
+  query = sessionExerciseId
+    ? query.eq('session_exercise_id', sessionExerciseId)
+    : query.eq('exercise_name', exerciseName);
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const values = data
+    .map((row) => progressPoint({ type, reps: row.reps, weight_kg: row.weight_kg, hold_seconds: row.hold_seconds }))
+    .filter((point): point is { value: number; unit: string } => point !== null)
+    .map((point) => point.value);
+
+  return values.length > 0 ? Math.max(...values) : null;
+}
+
 export function useAddExerciseSet(workoutLogId: string) {
   const { session } = useAuth();
   const userId = session?.user.id;
@@ -36,6 +63,8 @@ export function useAddExerciseSet(workoutLogId: string) {
 
   return useMutation({
     mutationFn: async (input: AddSetInput) => {
+      const priorBest = await fetchPriorBestValue(userId!, input.type, input.sessionExerciseId, input.exerciseName);
+
       const { data: existingSets, error: countError } = await supabase
         .from('exercise_logs')
         .select('id')
@@ -43,23 +72,38 @@ export function useAddExerciseSet(workoutLogId: string) {
         .eq('exercise_name', input.exerciseName);
       if (countError) throw countError;
 
-      const { error } = await supabase.from('exercise_logs').insert({
-        workout_log_id: workoutLogId,
-        user_id: userId!,
-        session_exercise_id: input.sessionExerciseId,
-        exercise_name: input.exerciseName,
+      const { data: row, error } = await supabase
+        .from('exercise_logs')
+        .insert({
+          workout_log_id: workoutLogId,
+          user_id: userId!,
+          session_exercise_id: input.sessionExerciseId,
+          exercise_name: input.exerciseName,
+          type: input.type,
+          skill_key: input.skillKey,
+          set_number: existingSets.length + 1,
+          reps: input.reps,
+          weight_kg: input.weight_kg,
+          hold_seconds: input.hold_seconds,
+          progression_variant: input.progression_variant,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      const newPoint = progressPoint({
         type: input.type,
-        skill_key: input.skillKey,
-        set_number: existingSets.length + 1,
         reps: input.reps,
         weight_kg: input.weight_kg,
         hold_seconds: input.hold_seconds,
-        progression_variant: input.progression_variant,
       });
-      if (error) throw error;
+      const isNewRecord = newPoint != null && priorBest != null && newPoint.value > priorBest;
+
+      return { row, isNewRecord };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exercise_logs', workoutLogId] });
+      queryClient.invalidateQueries({ queryKey: ['progress_history'] });
     },
   });
 }
@@ -83,6 +127,7 @@ export function useUpdateExerciseSet(workoutLogId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exercise_logs', workoutLogId] });
+      queryClient.invalidateQueries({ queryKey: ['progress_history'] });
     },
   });
 }
@@ -97,6 +142,7 @@ export function useDeleteExerciseSet(workoutLogId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exercise_logs', workoutLogId] });
+      queryClient.invalidateQueries({ queryKey: ['progress_history'] });
     },
   });
 }

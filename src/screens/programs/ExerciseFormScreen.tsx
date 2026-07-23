@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Button } from '../../components/Button';
+import { Stepper } from '../../components/Stepper';
 import { TextField } from '../../components/TextField';
 import {
+  DEFAULT_REST_SECONDS,
   useCreateSessionExercise,
   useDeleteSessionExercise,
   useUpdateSessionExercise,
@@ -35,6 +37,7 @@ export function ExerciseFormScreen({ navigation, route }: Props) {
     initialValues?.target_hold_seconds != null ? String(initialValues.target_hold_seconds) : ''
   );
   const [progressionVariant, setProgressionVariant] = useState(initialValues?.progression_variant ?? '');
+  const [restSeconds, setRestSeconds] = useState(initialValues?.target_rest_seconds ?? DEFAULT_REST_SECONDS);
   const [notes, setNotes] = useState(initialValues?.notes ?? '');
 
   const createExercise = useCreateSessionExercise(programSessionId);
@@ -61,6 +64,7 @@ export function ExerciseFormScreen({ navigation, route }: Props) {
       target_reps: type === 'reps_weight' && targetReps ? parseInt(targetReps, 10) : null,
       target_weight_kg: type === 'reps_weight' && targetWeight ? parseFloat(targetWeight) : null,
       target_hold_seconds: type === 'isometric' && targetHold ? parseInt(targetHold, 10) : null,
+      target_rest_seconds: restSeconds,
       progression_variant: type === 'progression' ? progressionVariant.trim() || null : null,
       notes: notes.trim() || null,
     };
@@ -158,6 +162,16 @@ export function ExerciseFormScreen({ navigation, route }: Props) {
             placeholder="Ex. strict, kipping, tuck, straddle, full..."
           />
         ) : null}
+
+        <Stepper
+          label="Repos entre les séries"
+          value={restSeconds}
+          onChange={setRestSeconds}
+          step={15}
+          min={0}
+          max={600}
+          suffix="s"
+        />
 
         <Text className="mb-1.5 mt-2 text-sm font-medium text-textMuted">
           Rattacher à un skill suivi (optionnel)
