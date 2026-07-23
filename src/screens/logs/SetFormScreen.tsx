@@ -5,6 +5,7 @@ import { TextField } from '../../components/TextField';
 import { useRestTimer } from '../../contexts/RestTimerContext';
 import { useAddExerciseSet, useUpdateExerciseSet, useDeleteExerciseSet } from '../../hooks/useExerciseLogs';
 import { DEFAULT_REST_SECONDS } from '../../hooks/useSessionExercises';
+import { isDataConflictError } from '../../lib/queryClient';
 import type { ExerciseType, SkillKey } from '../../types/database';
 
 export type SetFormParams = {
@@ -42,7 +43,7 @@ export function SetFormScreen({ navigation, route }: Props) {
   const restTimer = useRestTimer();
   const isSaving = addSet.isPending || updateSet.isPending;
 
-  const handleSave = async () => {
+  const handleSave = () => {
     const values = {
       reps: type !== 'isometric' && reps ? parseInt(reps, 10) : null,
       weight_kg: type === 'reps_weight' && weight ? parseFloat(weight) : null,
@@ -50,25 +51,21 @@ export function SetFormScreen({ navigation, route }: Props) {
       progression_variant: type === 'progression' ? variant.trim() || null : null,
     };
 
-    try {
-      if (isEditing) {
-        await updateSet.mutateAsync({ id: setId, ...values });
-      } else {
-        await addSet.mutateAsync({
-          sessionExerciseId,
-          exerciseName,
-          type,
-          skillKey,
-          ...values,
-        });
-        // Premier ajout d'un exercice à la volée : pas de plan pour connaître
-        // un repos dédié, on démarre avec la valeur par défaut de l'app.
-        restTimer.start(DEFAULT_REST_SECONDS, exerciseName);
-      }
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert('Erreur', (error as Error).message);
+    const onError = (error: unknown) => {
+      if (!isDataConflictError(error)) Alert.alert('Erreur', (error as Error).message);
+    };
+
+    // On ne bloque pas sur le réseau : la mutation peut rester en attente de
+    // reconnexion, l'utilisateur doit pouvoir continuer à naviguer/logger.
+    if (isEditing) {
+      updateSet.mutate({ id: setId, ...values }, { onError });
+    } else {
+      addSet.mutate({ sessionExerciseId, exerciseName, type, skillKey, ...values }, { onError });
+      // Premier ajout d'un exercice à la volée : pas de plan pour connaître
+      // un repos dédié, on démarre avec la valeur par défaut de l'app.
+      restTimer.start(DEFAULT_REST_SECONDS, exerciseName);
     }
+    navigation.goBack();
   };
 
   const handleDelete = () => {
@@ -77,8 +74,12 @@ export function SetFormScreen({ navigation, route }: Props) {
       {
         text: 'Supprimer',
         style: 'destructive',
-        onPress: async () => {
-          await deleteSet.mutateAsync(setId!);
+        onPress: () => {
+          deleteSet.mutate(setId!, {
+            onError: (error) => {
+              if (!isDataConflictError(error)) Alert.alert('Erreur', (error as Error).message);
+            },
+          });
           navigation.goBack();
         },
       },

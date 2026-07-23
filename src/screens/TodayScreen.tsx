@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Alert, ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { Button } from '../components/Button';
 import { CalendarEntryCard } from '../components/CalendarEntryCard';
 import { FreeWorkoutLogCard } from '../components/FreeWorkoutLogCard';
@@ -23,7 +23,7 @@ export function TodayScreen({ navigation }: Props) {
   const dateKey = todayDateKey();
   const { data: entries, isLoading: isLoadingEntries } = useTodayEntriesQuery();
   const { data: freeLogs, isLoading: isLoadingFreeLogs } = useFreeWorkoutLogsByDateQuery(dateKey);
-  const createWorkoutLog = useCreateWorkoutLog();
+  const { createWorkoutLog, isPending: isCreatingWorkoutLog } = useCreateWorkoutLog();
 
   const rows = useMemo<Row[]>(() => {
     const entryRows: Row[] = (entries ?? []).map((entry) => ({ kind: 'entry', id: entry.id, entry }));
@@ -34,13 +34,11 @@ export function TodayScreen({ navigation }: Props) {
   const [heroRow, ...restRows] = rows;
 
   const handleStartFreeSession = () => {
-    createWorkoutLog.mutate(
-      { sessionName: 'Séance libre', performedDate: dateKey, calendarEntryId: null },
-      {
-        onSuccess: (data) => navigation.navigate('WorkoutLog', { workoutLogId: data.id }),
-        onError: (error) => Alert.alert('Erreur', (error as Error).message),
-      }
-    );
+    // L'id est disponible immédiatement (généré côté client) : on peut
+    // naviguer tout de suite même hors-ligne, la mutation réelle suit en
+    // tâche de fond (ou en attente de réseau).
+    const workoutLogId = createWorkoutLog({ sessionName: 'Séance libre', performedDate: dateKey, calendarEntryId: null });
+    navigation.navigate('WorkoutLog', { workoutLogId });
   };
 
   if (isLoadingEntries || isLoadingFreeLogs) {
@@ -90,7 +88,7 @@ export function TodayScreen({ navigation }: Props) {
                     label="Démarrer une séance libre"
                     variant="secondary"
                     onPress={handleStartFreeSession}
-                    loading={createWorkoutLog.isPending}
+                    loading={isCreatingWorkoutLog}
                   />
                 </View>
               </View>
@@ -104,7 +102,7 @@ export function TodayScreen({ navigation }: Props) {
           heroRow ? (
             <View className="mt-4 gap-3">
               <Button label="Planifier une autre séance" variant="secondary" onPress={() => navigation.navigate('SessionPicker', { dateKey })} />
-              <Button label="Démarrer une séance libre" onPress={handleStartFreeSession} loading={createWorkoutLog.isPending} />
+              <Button label="Démarrer une séance libre" onPress={handleStartFreeSession} loading={isCreatingWorkoutLog} />
             </View>
           ) : null
         }

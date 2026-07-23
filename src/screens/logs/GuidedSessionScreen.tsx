@@ -9,6 +9,7 @@ import { useAddExerciseSet, useExerciseLogsQuery } from '../../hooks/useExercise
 import { DEFAULT_REST_SECONDS } from '../../hooks/useSessionExercises';
 import { usePlannedExercisesQuery, useWorkoutLogQuery } from '../../hooks/useWorkoutLogs';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget } from '../../lib/exerciseFormat';
+import { isDataConflictError } from '../../lib/queryClient';
 import { skillLabel } from '../../lib/skills';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
 
@@ -102,6 +103,13 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
     stepIndex === steps.length - 1 || steps[stepIndex + 1]?.exercise.id !== exercise.id;
 
   const handleValidate = () => {
+    // Le minuteur et le passage à la série suivante ne dépendent pas du
+    // réseau : la mutation elle-même peut rester en attente de reconnexion
+    // sans bloquer le déroulé du mode guidé.
+    restTimer.start(exercise.target_rest_seconds ?? DEFAULT_REST_SECONDS, exercise.name);
+    setWasRecord(false);
+    setPhase('logged');
+
     addSet.mutate(
       {
         sessionExerciseId: exercise.id,
@@ -114,12 +122,10 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
         progression_variant: exercise.type === 'progression' ? variant.trim() || null : null,
       },
       {
-        onSuccess: ({ isNewRecord }) => {
-          restTimer.start(exercise.target_rest_seconds ?? DEFAULT_REST_SECONDS, exercise.name);
-          setWasRecord(isNewRecord);
-          setPhase('logged');
+        onSuccess: ({ isNewRecord }) => setWasRecord(isNewRecord),
+        onError: (error) => {
+          if (!isDataConflictError(error)) Alert.alert('Erreur', (error as Error).message);
         },
-        onError: (error) => Alert.alert('Erreur', (error as Error).message),
       }
     );
   };

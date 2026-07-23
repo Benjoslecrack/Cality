@@ -31,7 +31,7 @@ export function CalendarEntryCard({ entry, size = 'default' }: Props) {
   const updateStatus = useUpdateCalendarEntryStatus();
   const deleteEntry = useDeleteCalendarEntry();
   const deleteWorkoutLog = useDeleteWorkoutLog();
-  const createWorkoutLog = useCreateWorkoutLog();
+  const { createWorkoutLog } = useCreateWorkoutLog();
   const { data: existingLog } = useWorkoutLogByCalendarEntryQuery(entry.id);
   const statusMeta = STATUS_META[entry.status];
   const isHero = size === 'hero';
@@ -68,17 +68,12 @@ export function CalendarEntryCard({ entry, size = 'default' }: Props) {
       navigation.navigate('WorkoutLog', { workoutLogId: existingLog.id });
       return;
     }
-    createWorkoutLog.mutate(
-      {
-        sessionName: entry.program_sessions?.name ?? 'Séance',
-        performedDate: entry.scheduled_date,
-        calendarEntryId: entry.id,
-      },
-      {
-        onSuccess: (data) => navigation.navigate('WorkoutLog', { workoutLogId: data.id }),
-        onError: (error) => Alert.alert('Erreur', (error as Error).message),
-      }
-    );
+    const workoutLogId = createWorkoutLog({
+      sessionName: entry.program_sessions?.name ?? 'Séance',
+      performedDate: entry.scheduled_date,
+      calendarEntryId: entry.id,
+    });
+    navigation.navigate('WorkoutLog', { workoutLogId });
   };
 
   return (

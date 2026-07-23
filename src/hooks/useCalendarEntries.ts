@@ -94,7 +94,25 @@ export function useUpdateCalendarEntryStatus() {
       const { error } = await supabase.from('calendar_entries').update({ status }).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    // Mise à jour optimiste : "marquer fait/sauté" doit se refléter à l'écran
+    // tout de suite même hors-ligne, la mutation réelle restant en attente de
+    // réseau en arrière-plan.
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['calendar_entries'] });
+      const previousQueries = queryClient.getQueriesData<CalendarEntryWithSession[]>({
+        queryKey: ['calendar_entries'],
+      });
+      queryClient.setQueriesData<CalendarEntryWithSession[]>({ queryKey: ['calendar_entries'] }, (old) =>
+        old?.map((entry) => (entry.id === id ? { ...entry, status } : entry))
+      );
+      return { previousQueries };
+    },
+    onError: (_error, _variables, context) => {
+      context?.previousQueries.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar_entries'] });
     },
   });

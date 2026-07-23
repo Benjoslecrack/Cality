@@ -5,6 +5,7 @@ import { Stepper } from '../../components/Stepper';
 import { TextField } from '../../components/TextField';
 import { useRestTimer } from '../../contexts/RestTimerContext';
 import { useAddExerciseSet } from '../../hooks/useExerciseLogs';
+import { isDataConflictError } from '../../lib/queryClient';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget, formatSetValue } from '../../lib/exerciseFormat';
 import { skillLabel } from '../../lib/skills';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
@@ -53,6 +54,10 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
   const [showRecordFlash, setShowRecordFlash] = useState(false);
 
   const handleValidate = () => {
+    // Démarré tout de suite, pas dans onSuccess : ne dépend pas du réseau, la
+    // mutation elle-même peut rester en attente de reconnexion.
+    restTimer.start(card.restSeconds, card.name);
+
     addSet.mutate(
       {
         sessionExerciseId: card.sessionExerciseId,
@@ -66,13 +71,14 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
       },
       {
         onSuccess: ({ isNewRecord }) => {
-          restTimer.start(card.restSeconds, card.name);
           if (isNewRecord) {
             setShowRecordFlash(true);
             setTimeout(() => setShowRecordFlash(false), 2600);
           }
         },
-        onError: (error) => Alert.alert('Erreur', (error as Error).message),
+        onError: (error) => {
+          if (!isDataConflictError(error)) Alert.alert('Erreur', (error as Error).message);
+        },
       }
     );
   };

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import storage from './authStorage';
+import storage from './keyValueStore';
 import type { Database } from '../types/database';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;

@@ -2,6 +2,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { ActivityIndicator, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RestTimerBar } from '../components/RestTimerBar';
+import { SyncStatusBadge } from '../components/SyncStatusBadge';
 import { useAuth } from '../contexts/AuthContext';
 import { COLORS } from '../theme/tokens';
 import { AuthStack } from './AuthStack';
@@ -37,11 +38,16 @@ export function RootNavigator() {
         {session ? <MainTabs /> : <AuthStack />}
       </NavigationContainer>
       {session ? (
-        // Positionné juste au-dessus de la tab bar (hauteur par défaut ~49 +
-        // zone de sécurité) : le minuteur reste visible quel que soit l'onglet.
-        <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 49 }} pointerEvents="box-none">
-          <RestTimerBar />
-        </View>
+        <>
+          <View style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 8 }} pointerEvents="box-none">
+            <SyncStatusBadge />
+          </View>
+          {/* Positionné juste au-dessus de la tab bar (hauteur par défaut ~49 +
+          zone de sécurité) : le minuteur reste visible quel que soit l'onglet. */}
+          <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 49 }} pointerEvents="box-none">
+            <RestTimerBar />
+          </View>
+        </>
       ) : null}
     </View>
   );

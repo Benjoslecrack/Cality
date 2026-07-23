@@ -4,7 +4,7 @@ import { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import {
@@ -21,18 +21,10 @@ import {
 import { AuthProvider } from './src/contexts/AuthContext';
 import { RestTimerProvider } from './src/contexts/RestTimerContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { queryCachePersister, queryClient } from './src/lib/queryClient';
 import { COLORS } from './src/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30_000,
-    },
-  },
-});
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -61,14 +53,23 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister: queryCachePersister }}
+        onSuccess={() => {
+          // Rejoue les mutations mises en pause hors-ligne (créer un log,
+          // valider une série...) une fois le cache restauré et la session
+          // réseau prête.
+          queryClient.resumePausedMutations();
+        }}
+      >
         <AuthProvider>
           <RestTimerProvider>
             <StatusBar style="light" />
             <RootNavigator />
           </RestTimerProvider>
         </AuthProvider>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </SafeAreaProvider>
   );
 }

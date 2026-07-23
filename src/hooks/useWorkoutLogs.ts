@@ -1,3 +1,5 @@
+import * as Crypto from 'expo-crypto';
+import { useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -63,20 +65,27 @@ export function usePlannedExercisesQuery(calendarEntryId: string | null | undefi
   });
 }
 
+type CreateWorkoutLogInput = {
+  sessionName: string;
+  performedDate: string;
+  calendarEntryId?: string | null;
+};
+
+// Id généré côté client (pas par Postgres) : indispensable pour pouvoir
+// naviguer vers l'écran de log immédiatement, même hors-ligne — la mutation
+// réelle est mise en pause par React Query en attendant le réseau, donc son
+// onSuccess ne suffit pas pour débloquer la navigation tout de suite.
 export function useCreateWorkoutLog() {
   const { session } = useAuth();
   const userId = session?.user.id;
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (input: {
-      sessionName: string;
-      performedDate: string;
-      calendarEntryId?: string | null;
-    }) => {
+  const mutation = useMutation({
+    mutationFn: async (input: CreateWorkoutLogInput & { id: string }) => {
       const { data, error } = await supabase
         .from('workout_logs')
         .insert({
+          id: input.id,
           user_id: userId!,
           session_name: input.sessionName,
           performed_date: input.performedDate,
@@ -87,13 +96,39 @@ export function useCreateWorkoutLog() {
       if (error) throw error;
       return data;
     },
+    onMutate: (input) => {
+      queryClient.setQueryData(['workout_log', input.id], {
+        id: input.id,
+        user_id: userId!,
+        session_name: input.sessionName,
+        performed_date: input.performedDate,
+        calendar_entry_id: input.calendarEntryId ?? null,
+        notes: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    },
     onSuccess: (data) => {
+      queryClient.setQueryData(['workout_log', data.id], data);
       queryClient.invalidateQueries({ queryKey: ['workout_logs'] });
       if (data.calendar_entry_id) {
         queryClient.invalidateQueries({ queryKey: ['workout_log', 'by_calendar_entry', data.calendar_entry_id] });
       }
     },
   });
+
+  // Retourne l'id tout de suite (avant même que la mutation ne parte) pour
+  // permettre à l'appelant de naviguer sans attendre le réseau.
+  const createWorkoutLog = useCallback(
+    (input: CreateWorkoutLogInput): string => {
+      const id = Crypto.randomUUID();
+      mutation.mutate({ ...input, id });
+      return id;
+    },
+    [mutation]
+  );
+
+  return { createWorkoutLog, isPending: mutation.isPending };
 }
 
 export function useUpdateWorkoutLog(workoutLogId: string) {
