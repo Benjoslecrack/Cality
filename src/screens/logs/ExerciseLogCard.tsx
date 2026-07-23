@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
+import { Button } from '../../components/Button';
 import { XPBar } from '../../components/XPBar';
 import { Stepper } from '../../components/Stepper';
 import { TextField } from '../../components/TextField';
@@ -116,8 +117,8 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
             setTierFlash({
               color: RANK_COLORS[highest.rank],
               label: isRankUp
-                ? `Nouveau rang : ${RANK_LABELS[highest.rank]}`
-                : `Nouveau palier : ${formatRankLabel(highest.rank, highest.subLevel)}`,
+                ? `Rang débloqué : ${RANK_LABELS[highest.rank]}`
+                : `Palier débloqué : ${formatRankLabel(highest.rank, highest.subLevel)}`,
               isRankUp,
             });
             setTimeout(() => setTierFlash(null), 2600);
@@ -131,11 +132,11 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
   };
 
   return (
-    <View style={CARD_SHADOW} className="rounded-2xl bg-surface p-4">
+    <View style={CARD_SHADOW} className="border-2 border-border bg-surface p-4">
       <View className="flex-row items-center justify-between">
         <Text className="font-bodySemibold text-base text-text">{card.name}</Text>
         {skillName ? (
-          <View className="rounded-full border border-accent bg-accentDim/40 px-2.5 py-0.5">
+          <View className="border-2 border-accent bg-accentDim/40 px-2.5 py-0.5">
             <Text className="font-bodyMedium text-xs text-text">{skillName}</Text>
           </View>
         ) : null}
@@ -151,7 +152,7 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
             <Pressable
               key={set.id}
               onPress={() => onEditSet(set.id, set)}
-              className="min-h-11 flex-row items-center justify-between rounded-lg bg-background px-3"
+              className="min-h-11 flex-row items-center justify-between border-2 border-border bg-background px-3"
             >
               <Text className="font-body text-sm text-textMuted">Série {set.set_number}</Text>
               <Text className="font-mono text-sm text-text">{formatSetValue({ ...set, type: card.type })}</Text>
@@ -184,25 +185,19 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
           </>
         ) : null}
 
-        <Pressable
-          onPress={handleValidate}
-          disabled={addSet.isPending}
-          className={`min-h-11 items-center justify-center rounded-xl bg-accent py-3 ${addSet.isPending ? 'opacity-50' : ''}`}
-        >
-          <Text className="font-bodySemibold text-base text-onAccent">Valider la série</Text>
-        </Pressable>
+        <Button label="Valider la série" onPress={handleValidate} loading={addSet.isPending} />
       </View>
 
       {showRecordFlash ? (
-        <View className="mt-3">
-          <Text className="mb-1.5 font-bodySemibold text-sm text-accent">Nouveau record</Text>
+        <View className="mt-4">
+          <Text className="mb-1.5 font-display text-sm uppercase text-accent">Nouveau record !</Text>
           <XPBar progress={1} justRecorded />
         </View>
       ) : null}
 
       {tierFlash ? (
-        <View className="mt-3">
-          <Text className="mb-1.5 font-bodySemibold text-sm" style={{ color: tierFlash.color }}>
+        <View className="mt-4">
+          <Text className="mb-1.5 font-display text-sm uppercase" style={{ color: tierFlash.color }}>
             {tierFlash.label}
           </Text>
           <XPBar progress={1} justRanked={tierFlash.isRankUp} fillColors={[COLORS.textMuted, tierFlash.color]} />

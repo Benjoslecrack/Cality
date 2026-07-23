@@ -20,11 +20,11 @@ export function RestTimerBar() {
   const progress = totalSeconds > 0 ? 1 - remainingSeconds / totalSeconds : 1;
 
   return (
-    <View style={CARD_SHADOW} className="mx-4 mb-2 rounded-2xl bg-surface p-4">
+    <View style={CARD_SHADOW} className="mx-4 mb-2 border-2 border-border bg-surface p-4">
       {isFinished ? (
         <View className="flex-row items-center justify-between">
-          <Text className="font-bodySemibold text-base text-accent">Repos terminé</Text>
-          <Pressable onPress={skip} className="min-h-11 justify-center rounded-lg bg-accent px-4">
+          <Text className="font-display text-base uppercase text-accent">Repos terminé</Text>
+          <Pressable onPress={skip} className="min-h-11 justify-center border-2 border-accentDim bg-accent px-4">
             <Text className="font-bodySemibold text-sm text-onAccent">OK</Text>
           </Pressable>
         </View>
@@ -34,19 +34,19 @@ export function RestTimerBar() {
             <Text className="font-bodyMedium text-sm text-textMuted" numberOfLines={1}>
               Repos — {exerciseName}
             </Text>
-            <Text className="font-mono text-2xl text-text">{formatClock(remainingSeconds)}</Text>
+            <Text className="font-display text-2xl text-text">{formatClock(remainingSeconds)}</Text>
           </View>
           <View className="mb-3">
             <XPBar progress={progress} />
           </View>
           <View className="flex-row items-center gap-2">
-            <Pressable onPress={() => addTime(-15)} className="min-h-11 flex-1 items-center justify-center rounded-lg border border-accentDim">
+            <Pressable onPress={() => addTime(-15)} className="min-h-11 flex-1 items-center justify-center border-2 border-accentDim">
               <Text className="font-bodyMedium text-sm text-text">−15s</Text>
             </Pressable>
-            <Pressable onPress={() => addTime(15)} className="min-h-11 flex-1 items-center justify-center rounded-lg border border-accentDim">
+            <Pressable onPress={() => addTime(15)} className="min-h-11 flex-1 items-center justify-center border-2 border-accentDim">
               <Text className="font-bodyMedium text-sm text-text">+15s</Text>
             </Pressable>
-            <Pressable onPress={skip} className="min-h-11 flex-1 items-center justify-center rounded-lg">
+            <Pressable onPress={skip} className="min-h-11 flex-1 items-center justify-center border-2 border-transparent">
               <Text className="font-bodyMedium text-sm text-textMuted">Passer</Text>
             </Pressable>
           </View>

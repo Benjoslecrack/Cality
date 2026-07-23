@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Text, View, Pressable, ScrollView } from 'react-native';
+import { ActivityIndicator, Alert, Text, View, ScrollView } from 'react-native';
 import { Button } from '../../components/Button';
 import { XPBar } from '../../components/XPBar';
 import { Stepper } from '../../components/Stepper';
@@ -165,8 +165,8 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
             setTierFlash({
               color: RANK_COLORS[highest.rank],
               label: isRankUp
-                ? `Nouveau rang : ${RANK_LABELS[highest.rank]}`
-                : `Nouveau palier : ${formatRankLabel(highest.rank, highest.subLevel)}`,
+                ? `Rang débloqué : ${RANK_LABELS[highest.rank]}`
+                : `Palier débloqué : ${formatRankLabel(highest.rank, highest.subLevel)}`,
               isRankUp,
             });
           }
@@ -192,7 +192,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
       <Text className="mb-1 font-display text-3xl text-text">{exercise.name}</Text>
       {exercise.skill_id && catalog?.find((s) => s.id === exercise.skill_id) ? (
         <View className="mb-2 flex-row">
-          <View className="rounded-full border border-accent bg-accentDim/40 px-2.5 py-0.5">
+          <View className="border-2 border-accent bg-accentDim/40 px-2.5 py-0.5">
             <Text className="font-bodyMedium text-xs text-text">
               {catalog.find((s) => s.id === exercise.skill_id)!.name}
             </Text>
@@ -211,7 +211,7 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
         })}
       </Text>
 
-      <View style={CARD_SHADOW} className="rounded-2xl bg-surface p-5">
+      <View style={CARD_SHADOW} className="border-2 border-border bg-surface p-5">
         {phase === 'input' ? (
           <>
             {isFirstSetOfExerciseThisSession && suggestion ? (
@@ -236,39 +236,26 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
                 <Stepper label="Répétitions (optionnel)" value={reps} onChange={setReps} step={1} min={0} max={50} />
               </>
             ) : null}
-            <Pressable
-              onPress={handleValidate}
-              disabled={addSet.isPending}
-              className={`min-h-11 items-center justify-center rounded-xl bg-accent py-4 ${addSet.isPending ? 'opacity-50' : ''}`}
-            >
-              <Text className="font-bodySemibold text-lg text-onAccent">Valider la série</Text>
-            </Pressable>
+            <Button label="Valider la série" onPress={handleValidate} loading={addSet.isPending} />
           </>
         ) : (
           <>
             {wasRecord ? (
               <View className="mb-4">
-                <Text className="mb-1.5 font-bodySemibold text-sm text-accent">Nouveau record</Text>
+                <Text className="mb-1.5 font-display text-sm uppercase text-accent">Nouveau record !</Text>
                 <XPBar progress={1} justRecorded />
               </View>
             ) : null}
             {tierFlash ? (
               <View className="mb-4">
-                <Text className="mb-1.5 font-bodySemibold text-sm" style={{ color: tierFlash.color }}>
+                <Text className="mb-1.5 font-display text-sm uppercase" style={{ color: tierFlash.color }}>
                   {tierFlash.label}
                 </Text>
                 <XPBar progress={1} justRanked={tierFlash.isRankUp} fillColors={[COLORS.textMuted, tierFlash.color]} />
               </View>
             ) : null}
             {!wasRecord && !tierFlash ? <Text className="mb-4 font-body text-textMuted">Série enregistrée.</Text> : null}
-            <Pressable
-              onPress={handleNext}
-              className="min-h-11 items-center justify-center rounded-xl bg-accent py-4"
-            >
-              <Text className="font-bodySemibold text-lg text-onAccent">
-                {isLastStepOfExercise ? 'Exercice suivant' : 'Série suivante'}
-              </Text>
-            </Pressable>
+            <Button label={isLastStepOfExercise ? 'Exercice suivant' : 'Série suivante'} onPress={handleNext} />
           </>
         )}
       </View>

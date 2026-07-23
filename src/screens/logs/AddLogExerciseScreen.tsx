@@ -60,7 +60,7 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
           <Pressable
             key={option}
             onPress={() => setType(option)}
-            className={`rounded-xl border px-4 py-3 ${
+            className={`border-2 px-4 py-3 ${
               type === option ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
             }`}
           >
@@ -75,7 +75,7 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
       <View className="mb-6 flex-row flex-wrap gap-2">
         <Pressable
           onPress={() => setSkillId(null)}
-          className={`rounded-full border px-4 py-2 ${
+          className={`border-2 px-4 py-2 ${
             skillId === null ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
           }`}
         >
@@ -85,7 +85,7 @@ export function AddLogExerciseScreen({ navigation, route }: Props) {
           <Pressable
             key={skill.id}
             onPress={() => setSkillId(skill.id)}
-            className={`rounded-full border px-4 py-2 ${
+            className={`border-2 px-4 py-2 ${
               skillId === skill.id ? 'border-primary bg-primaryMuted' : 'border-border bg-surface'
             }`}
           >

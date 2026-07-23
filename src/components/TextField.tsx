@@ -11,7 +11,7 @@ export function TextField({ label, error, ...inputProps }: TextFieldProps) {
     <View className="mb-4">
       <Text className="mb-1.5 font-bodyMedium text-sm text-textMuted">{label}</Text>
       <TextInput
-        className="min-h-11 rounded-xl border border-textMuted/25 bg-surface px-4 py-3 font-body text-base text-text"
+        className="min-h-11 border-2 border-border bg-surface px-4 py-3 font-body text-base text-text"
         placeholderTextColor={COLORS.textMuted}
         autoCapitalize="none"
         {...inputProps}
