@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, ScrollView, Switch, Text, View } from 'react-native';
 import { useSkillCatalogQuery, useToggleSkillSelection, useUserSkillSelectionQuery } from '../../hooks/useSkillRanks';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
@@ -7,7 +8,8 @@ import { CARD_SHADOW, COLORS } from '../../theme/tokens';
 // l'historique restent intacts et réapparaissent si le skill est réactivé.
 export function SkillSelectionScreen() {
   const { data: catalog, isLoading: loadingCatalog } = useSkillCatalogQuery();
-  const { data: activeIds, isLoading: loadingSelection } = useUserSkillSelectionQuery();
+  const { data: activeIdList, isLoading: loadingSelection } = useUserSkillSelectionQuery();
+  const activeIds = useMemo(() => new Set(activeIdList ?? []), [activeIdList]);
   const toggle = useToggleSkillSelection();
 
   if (loadingCatalog || loadingSelection) {
@@ -26,7 +28,7 @@ export function SkillSelectionScreen() {
       </Text>
 
       {(catalog ?? []).map((skill) => {
-        const active = activeIds?.has(skill.id) ?? false;
+        const active = activeIds.has(skill.id);
         return (
           <View
             key={skill.id}

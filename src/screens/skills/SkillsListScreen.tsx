@@ -24,9 +24,11 @@ type Props = NativeStackScreenProps<SkillsStackParamList, 'SkillsList'>;
 export function SkillsListScreen({ navigation }: Props) {
   const { data: allLogs } = useAllExerciseLogsQuery(3);
   const { data: catalog, isLoading: loadingCatalog } = useSkillCatalogQuery();
-  const { data: activeIds, isLoading: loadingSelection } = useUserSkillSelectionQuery();
+  const { data: activeIdList, isLoading: loadingSelection } = useUserSkillSelectionQuery();
   const { data: progress } = useUserSkillProgressQuery();
   const [showAll, setShowAll] = useState(false);
+
+  const activeIds = useMemo(() => new Set(activeIdList ?? []), [activeIdList]);
 
   const weeklyVolume = useMemo(() => aggregateWeeklySetCount(allLogs ?? [], 3), [allLogs]);
 
@@ -42,7 +44,7 @@ export function SkillsListScreen({ navigation }: Props) {
   const visibleSkills = useMemo(() => {
     if (!catalog) return [];
     if (showAll) return catalog;
-    return catalog.filter((skill) => activeIds?.has(skill.id));
+    return catalog.filter((skill) => activeIds.has(skill.id));
   }, [catalog, activeIds, showAll]);
 
   if (loadingCatalog || loadingSelection) {

@@ -95,6 +95,9 @@ export function useUserSkillProgressQuery() {
 }
 
 // Présence d'un skill_id dans le résultat = skill actif pour l'utilisateur.
+// Renvoie un tableau (pas un Set) : le cache est persisté en JSON via
+// AsyncStorage, qui sérialise un Set en "{}" et le corrompt à la
+// réhydratation. Les appelants reconstruisent un Set localement via useMemo.
 export function useUserSkillSelectionQuery() {
   const { session } = useAuth();
   const userId = session?.user.id;
@@ -102,10 +105,10 @@ export function useUserSkillSelectionQuery() {
   return useQuery({
     queryKey: ['user_skill_selection', userId],
     enabled: !!userId,
-    queryFn: async (): Promise<Set<string>> => {
+    queryFn: async (): Promise<string[]> => {
       const { data, error } = await supabase.from('user_skill_selection').select('skill_id').eq('user_id', userId!);
       if (error) throw error;
-      return new Set(data.map((row) => row.skill_id));
+      return data.map((row) => row.skill_id);
     },
   });
 }
@@ -133,12 +136,12 @@ export function useToggleSkillSelection() {
     onMutate: async ({ skillId, active }) => {
       const queryKey = ['user_skill_selection', userId];
       await queryClient.cancelQueries({ queryKey });
-      const previous = queryClient.getQueryData<Set<string>>(queryKey);
-      queryClient.setQueryData<Set<string>>(queryKey, (old) => {
-        const next = new Set(old ?? []);
-        if (active) next.add(skillId);
-        else next.delete(skillId);
-        return next;
+      const previous = queryClient.getQueryData<string[]>(queryKey);
+      queryClient.setQueryData<string[]>(queryKey, (old) => {
+        const set = new Set(old ?? []);
+        if (active) set.add(skillId);
+        else set.delete(skillId);
+        return [...set];
       });
       return { previous };
     },

@@ -55,7 +55,15 @@ export default function App() {
     <SafeAreaProvider>
       <PersistQueryClientProvider
         client={queryClient}
-        persistOptions={{ persister: queryCachePersister }}
+        persistOptions={{
+          persister: queryCachePersister,
+          // Incrémenté pour purger un cache persisté corrompu : un Set
+          // (user_skill_selection) sérialisé en JSON par AsyncStorage
+          // redevient un objet vide {} à la réhydratation, cassant
+          // `.has()`. Ce buster force un cache neuf plutôt que de tenter
+          // de réhydrater l'ancien format.
+          buster: 'v4-skill-sublevels-1',
+        }}
         onSuccess={() => {
           // Rejoue les mutations mises en pause hors-ligne (créer un log,
           // valider une série...) une fois le cache restauré et la session
