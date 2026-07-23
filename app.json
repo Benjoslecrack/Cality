@@ -23,7 +23,17 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-sharing"
+      "expo-sharing",
+      "expo-image",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cality a besoin d'accéder à tes photos pour ajouter une photo de progression.",
+          "cameraPermission": "Cality a besoin d'accéder à l'appareil photo pour prendre une photo de progression.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

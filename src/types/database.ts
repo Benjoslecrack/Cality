@@ -213,6 +213,26 @@ export interface Database {
         };
         Relationships: [];
       };
+      progress_photos: {
+        Row: {
+          id: string;
+          user_id: string;
+          taken_date: string;
+          storage_path: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          taken_date: string;
+          storage_path: string;
+        };
+        Update: {
+          taken_date?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

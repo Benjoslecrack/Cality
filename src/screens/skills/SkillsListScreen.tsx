@@ -20,6 +20,18 @@ export function SkillsListScreen({ navigation }: Props) {
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-6 py-6 gap-3">
+      <Pressable
+        onPress={() => navigation.navigate('PhotoTimeline')}
+        style={CARD_SHADOW}
+        className="mb-3 flex-row items-center justify-between rounded-2xl bg-surface p-4"
+      >
+        <View className="flex-row items-center gap-3">
+          <Ionicons name="images-outline" size={20} color={COLORS.accent} />
+          <Text className="font-bodySemibold text-base text-text">Photos de progression</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
+      </Pressable>
+
       {weeklyVolume.length > 1 ? (
         <View style={CARD_SHADOW} className="mb-3 rounded-2xl bg-surface p-4">
           <Text className="mb-3 font-bodyMedium text-sm text-textMuted">

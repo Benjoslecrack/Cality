@@ -1,7 +1,9 @@
 // Vérifie que les policies RLS empêchent bien un utilisateur de lire/modifier
-// les données d'un autre. Crée deux comptes de test jetables (via la clé
-// service_role, qui contourne RLS), insère des données comme le premier,
-// puis vérifie que le second n'y a aucun accès. Nettoie tout à la fin.
+// les données d'un autre — sur les tables Postgres ET sur le bucket Storage
+// "progress-photos" (privé, un dossier par utilisateur). Crée deux comptes de
+// test jetables (via la clé service_role, qui contourne RLS), insère des
+// données comme le premier, puis vérifie que le second n'y a aucun accès.
+// Nettoie tout à la fin.
 //
 // Usage :
 //   SUPABASE_SERVICE_ROLE_KEY=... node --env-file=.env scripts/test-rls.mjs
@@ -121,6 +123,21 @@ async function main() {
       .single();
     if (exerciseLogError) throw new Error(`Insertion exercise_log (A) : ${exerciseLogError.message}`);
 
+    console.log('\nUpload d\'une photo de progression comme A (Storage)...');
+    const photoBytes = new Uint8Array([0xff, 0xd8, 0xff, 0xd9]); // JPEG minimal (SOI+EOI), suffisant pour un test
+    const storagePath = `${userA.userId}/rls-test.jpg`;
+    const { error: uploadError } = await userA.client.storage
+      .from('progress-photos')
+      .upload(storagePath, photoBytes, { contentType: 'image/jpeg' });
+    if (uploadError) throw new Error(`Upload Storage (A) : ${uploadError.message}`);
+
+    const { data: progressPhoto, error: photoError } = await userA.client
+      .from('progress_photos')
+      .insert({ user_id: userA.userId, taken_date: '2026-01-01', storage_path: storagePath })
+      .select()
+      .single();
+    if (photoError) throw new Error(`Insertion progress_photo (A) : ${photoError.message}`);
+
     console.log("\nVérification que l'utilisateur B ne peut PAS lire les données de A...");
     const tablesAndIds = [
       ['profiles', 'id', userA.userId],
@@ -130,6 +147,7 @@ async function main() {
       ['calendar_entries', 'id', calendarEntry.id],
       ['workout_logs', 'id', workoutLog.id],
       ['exercise_logs', 'id', exerciseLog.id],
+      ['progress_photos', 'id', progressPhoto.id],
     ];
 
     for (const [table, idColumn, id] of tablesAndIds) {
@@ -148,11 +166,42 @@ async function main() {
     const { data: deleteData } = await userB.client.from('exercise_logs').delete().eq('id', exerciseLog.id).select();
     check('DELETE exercise_logs (B supprime une ligne de A)', (deleteData ?? []).length === 0, `${(deleteData ?? []).length} ligne(s) supprimée(s)`);
 
+    console.log("\nVérification des policies Storage (bucket progress-photos)...");
+    const { data: bucket, error: bucketError } = await admin.storage.getBucket('progress-photos');
+    check('Storage bucket progress-photos privé (public = false)', !bucketError && bucket?.public === false, bucketError?.message ?? `public: ${bucket?.public}`);
+
+    const { data: downloadData, error: downloadError } = await userB.client.storage
+      .from('progress-photos')
+      .download(storagePath);
+    check('Storage download (B lit le fichier de A)', !downloadData && !!downloadError, downloadError ? undefined : 'téléchargement réussi');
+
+    const { data: listData } = await userB.client.storage.from('progress-photos').list(userA.userId);
+    check("Storage list (B liste le dossier de A)", (listData ?? []).length === 0, `${(listData ?? []).length} fichier(s) visible(s)`);
+
+    const { error: crossUploadError } = await userB.client.storage
+      .from('progress-photos')
+      .upload(`${userA.userId}/intrusion.jpg`, photoBytes, { contentType: 'image/jpeg' });
+    check('Storage upload (B écrit dans le dossier de A)', !!crossUploadError, crossUploadError ? undefined : 'upload réussi');
+
+    const { error: crossDeleteError } = await userB.client.storage.from('progress-photos').remove([storagePath]);
+    const { data: stillThere } = await userA.client.storage.from('progress-photos').list(userA.userId);
+    check(
+      'Storage delete (B supprime le fichier de A)',
+      (stillThere ?? []).some((f) => f.name === 'rls-test.jpg'),
+      crossDeleteError ? crossDeleteError.message : 'fichier de A introuvable après suppression par B'
+    );
+
     console.log("\nVérification que l'utilisateur A voit bien ses propres données...");
     const { data: ownData, error: ownError } = await userA.client.from('programs').select('*').eq('id', program.id);
     check('SELECT programs (A lit sa propre ligne)', !ownError && ownData.length === 1, ownError?.message);
+
+    const { data: ownDownload, error: ownDownloadError } = await userA.client.storage
+      .from('progress-photos')
+      .download(storagePath);
+    check('Storage download (A lit son propre fichier)', !ownDownloadError && !!ownDownload, ownDownloadError?.message);
   } finally {
     console.log('\nNettoyage des comptes de test...');
+    await admin.storage.from('progress-photos').remove([`${userA.userId}/rls-test.jpg`, `${userA.userId}/intrusion.jpg`]);
     await admin.auth.admin.deleteUser(userA.userId);
     await admin.auth.admin.deleteUser(userB.userId);
   }

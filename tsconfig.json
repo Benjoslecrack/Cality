@@ -3,6 +3,6 @@
   "compilerOptions": {
     "strict": true,
     "moduleSuffixes": [".ios", ".android", ".native", ".web", ""],
-    "types": ["jest"]
+    "types": ["jest", "node"]
   }
 }
