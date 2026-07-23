@@ -1,9 +1,12 @@
 import { useMemo } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { SimpleBarChart } from '../../components/SimpleBarChart';
+import { SkillMilestoneBadges } from '../../components/SkillMilestoneBadges';
 import { useProgressHistoryQuery } from '../../hooks/useProgressHistory';
 import { formatSetValue } from '../../lib/exerciseFormat';
 import { progressPoint } from '../../lib/progressValue';
+import { aggregateWeeklyBest } from '../../lib/weeklyAggregate';
+import { COLORS } from '../../theme/tokens';
 import type { SkillKey } from '../../types/database';
 
 type Props = {
@@ -28,10 +31,12 @@ export function ProgressHistoryScreen({ route }: Props) {
       .slice(-12);
   }, [history]);
 
+  const weeklyTrend = useMemo(() => aggregateWeeklyBest(history ?? [], 3), [history]);
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.accent} />
       </View>
     );
   }
@@ -43,45 +48,61 @@ export function ProgressHistoryScreen({ route }: Props) {
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-6 pb-12 pt-6">
       {latest ? (
-        <View className="mb-6 rounded-2xl border border-border bg-surface p-4">
-          <Text className="text-sm text-textMuted">Dernier record</Text>
+        <View className="mb-6 rounded-2xl bg-surface p-4">
+          <Text className="font-body text-sm text-textMuted">Dernier record</Text>
           <View className="mt-1 flex-row items-center gap-2">
-            <Text className="text-2xl font-bold text-text">
+            <Text className="font-mono text-2xl text-text">
               {latest.value} {latest.unit}
             </Text>
             {trend !== 0 ? (
-              <Text className={trend > 0 ? 'text-success' : 'text-warning'}>{trend > 0 ? '▲ progression' : '▼ en baisse'}</Text>
+              <Text className={`font-bodyMedium ${trend > 0 ? 'text-accent' : 'text-textMuted'}`}>
+                {trend > 0 ? '▲ progression' : '▼ en baisse'}
+              </Text>
             ) : null}
           </View>
         </View>
       ) : (
-        <View className="mb-6 items-center rounded-2xl border border-border bg-surface p-6">
-          <Text className="text-center text-textMuted">
+        <View className="mb-6 items-center rounded-2xl bg-surface p-6">
+          <Text className="text-center font-body text-textMuted">
             Pas encore de série loggée pour cet exercice. Log une séance pour voir apparaître ton historique ici.
           </Text>
         </View>
       )}
 
+      {skillKey ? (
+        <View className="mb-6">
+          <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Paliers</Text>
+          <SkillMilestoneBadges skillKey={skillKey} logs={history ?? []} />
+        </View>
+      ) : null}
+
       {chartPoints.length > 1 ? (
         <View className="mb-6">
-          <Text className="mb-3 text-sm font-medium text-textMuted">Évolution</Text>
+          <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Évolution récente</Text>
           <SimpleBarChart points={chartPoints} />
+        </View>
+      ) : null}
+
+      {weeklyTrend.length > 1 ? (
+        <View className="mb-6">
+          <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Tendance (3 mois, par semaine)</Text>
+          <SimpleBarChart points={weeklyTrend} />
         </View>
       ) : null}
 
       {history && history.length > 0 ? (
         <View>
-          <Text className="mb-3 text-sm font-medium text-textMuted">Historique</Text>
+          <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Historique</Text>
           <View className="gap-2">
             {[...history].reverse().map((entry) => (
-              <View key={entry.id} className="flex-row items-center justify-between rounded-xl border border-border bg-surface px-4 py-3">
+              <View key={entry.id} className="flex-row items-center justify-between rounded-xl bg-surface px-4 py-3">
                 <View>
-                  <Text className="text-text">{entry.exercise_name}</Text>
+                  <Text className="font-body text-text">{entry.exercise_name}</Text>
                   {entry.workout_logs ? (
-                    <Text className="text-xs text-textMuted">{entry.workout_logs.performed_date}</Text>
+                    <Text className="font-body text-xs text-textMuted">{entry.workout_logs.performed_date}</Text>
                   ) : null}
                 </View>
-                <Text className="text-text">{formatSetValue(entry)}</Text>
+                <Text className="font-mono text-text">{formatSetValue(entry)}</Text>
               </View>
             ))}
           </View>

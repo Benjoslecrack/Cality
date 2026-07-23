@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { Button } from '../../components/Button';
+import { Stepper } from '../../components/Stepper';
 import { TextField } from '../../components/TextField';
 import { useExerciseLogsQuery } from '../../hooks/useExerciseLogs';
 import {
@@ -32,9 +33,13 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
   const deleteWorkoutLog = useDeleteWorkoutLog();
 
   const [notes, setNotes] = useState('');
+  const [rpe, setRpe] = useState<number | null>(null);
 
   useEffect(() => {
-    if (workoutLog) setNotes(workoutLog.notes ?? '');
+    if (workoutLog) {
+      setNotes(workoutLog.notes ?? '');
+      setRpe(workoutLog.rpe ?? null);
+    }
   }, [workoutLog]);
 
   const cards = useMemo<ExerciseCardData[]>(() => {
@@ -87,7 +92,8 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
     return cardList;
   }, [plannedExercises, exerciseLogs]);
 
-  const notesChanged = workoutLog && notes !== (workoutLog.notes ?? '');
+  const notesChanged =
+    workoutLog && (notes !== (workoutLog.notes ?? '') || rpe !== (workoutLog.rpe ?? null));
   const hasPlan = (plannedExercises?.length ?? 0) > 0;
 
   const handleEditSet = (
@@ -164,21 +170,23 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
         <Text className="font-bodyMedium text-text">+ Ajouter un exercice</Text>
       </Pressable>
 
+      <Stepper label="RPE de la séance (effort ressenti)" value={rpe ?? 7} onChange={setRpe} step={1} min={1} max={10} />
+
       <TextField
-        label="Notes de séance (RPE, sensations...)"
+        label="Notes de séance (sensations...)"
         value={notes}
         onChangeText={setNotes}
-        placeholder="Ex. RPE 8, bonne séance, épaule un peu chargée..."
+        placeholder="Ex. bonne séance, épaule un peu chargée..."
         multiline
         numberOfLines={3}
       />
       {notesChanged ? (
         <View className="mb-3">
           <Button
-            label="Enregistrer les notes"
+            label="Enregistrer"
             variant="secondary"
             loading={updateWorkoutLog.isPending}
-            onPress={() => updateWorkoutLog.mutate({ notes: notes.trim() || null })}
+            onPress={() => updateWorkoutLog.mutate({ notes: notes.trim() || null, rpe })}
           />
         </View>
       ) : null}

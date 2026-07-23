@@ -16,11 +16,11 @@ export function SimpleBarChart({ points, unit }: { points: ChartPoint[]; unit?: 
           const heightPct = Math.max((point.value / max) * 100, 4);
           const isLast = index === points.length - 1;
           return (
-            <View key={`${point.label}-${index}`} className="flex-1 items-center justify-end">
+            <View key={`${point.label}-${index}`} className="h-full flex-1 items-center justify-end">
               <Text className="mb-1 text-[10px] text-textMuted">{point.value}</Text>
               <View
                 style={{ height: `${heightPct}%` }}
-                className={`w-full rounded-t-md ${isLast ? 'bg-primary' : 'bg-surfaceAlt'}`}
+                className={`w-full rounded-t-md ${isLast ? 'bg-accent' : 'bg-textMuted/25'}`}
               />
             </View>
           );

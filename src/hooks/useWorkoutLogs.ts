@@ -104,6 +104,7 @@ export function useCreateWorkoutLog() {
         performed_date: input.performedDate,
         calendar_entry_id: input.calendarEntryId ?? null,
         notes: null,
+        rpe: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
@@ -135,7 +136,7 @@ export function useUpdateWorkoutLog(workoutLogId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updates: { session_name?: string; notes?: string | null }) => {
+    mutationFn: async (updates: { session_name?: string; notes?: string | null; rpe?: number | null }) => {
       const { error } = await supabase.from('workout_logs').update(updates).eq('id', workoutLogId);
       if (error) throw error;
     },

@@ -10,6 +10,7 @@ import { DEFAULT_REST_SECONDS } from '../../hooks/useSessionExercises';
 import { usePlannedExercisesQuery, useWorkoutLogQuery } from '../../hooks/useWorkoutLogs';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget } from '../../lib/exerciseFormat';
 import { isDataConflictError } from '../../lib/queryClient';
+import { useSuggestedSet } from '../../hooks/useSuggestedSet';
 import { skillLabel } from '../../lib/skills';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
 
@@ -56,6 +57,13 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
   }, [resumeIndex, stepIndex, isLoadingLogs]);
 
   const step = stepIndex != null ? steps[stepIndex] : undefined;
+  const isFirstSetOfExerciseThisSession =
+    !!step && (exerciseLogs ?? []).filter((log) => log.session_exercise_id === step.exercise.id).length === 0;
+  const { data: suggestion } = useSuggestedSet(
+    step?.exercise.id ?? null,
+    step?.exercise.name ?? '',
+    step?.exercise.type ?? 'reps_weight'
+  );
 
   useEffect(() => {
     if (!step) return;
@@ -68,6 +76,23 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
     setVariant(lastSet?.progression_variant ?? step.exercise.progression_variant ?? '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIndex]);
+
+  // Suggestion éditable pour la toute première série de l'exercice dans cette
+  // séance, une fois qu'elle arrive (peut résoudre après le prérempli
+  // ci-dessus, qui reste la valeur par défaut sinon) : jamais imposée.
+  useEffect(() => {
+    if (!step || !isFirstSetOfExerciseThisSession || !suggestion) return;
+    if (step.exercise.type === 'reps_weight') {
+      if (suggestion.reps != null) setReps(suggestion.reps);
+      if (suggestion.weight_kg != null) setWeight(suggestion.weight_kg);
+    } else if (step.exercise.type === 'isometric') {
+      if (suggestion.hold_seconds != null) setHold(suggestion.hold_seconds);
+    } else if (step.exercise.type === 'progression') {
+      if (suggestion.reps != null) setReps(suggestion.reps);
+      if (suggestion.progression_variant) setVariant(suggestion.progression_variant);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestion, stepIndex, isFirstSetOfExerciseThisSession]);
 
   if (isLoadingLog || isLoadingPlan || isLoadingLogs || stepIndex === null) {
     return (
@@ -164,6 +189,13 @@ export function GuidedSessionScreen({ navigation, route }: Props) {
       <View style={CARD_SHADOW} className="rounded-2xl bg-surface p-5">
         {phase === 'input' ? (
           <>
+            {isFirstSetOfExerciseThisSession && suggestion ? (
+              <Text className="mb-3 font-bodyMedium text-xs text-textMuted">
+                {suggestion.bumped
+                  ? 'Suggestion : +1 par rapport à la dernière fois (RPE bas)'
+                  : 'Suggestion : identique à ta dernière séance'}
+              </Text>
+            ) : null}
             {exercise.type === 'reps_weight' ? (
               <>
                 <Stepper label="Répétitions" value={reps} onChange={setReps} step={1} min={0} max={100} />

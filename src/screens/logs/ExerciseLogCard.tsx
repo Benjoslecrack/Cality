@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { SteelBar } from '../../components/SteelBar';
 import { Stepper } from '../../components/Stepper';
 import { TextField } from '../../components/TextField';
 import { useRestTimer } from '../../contexts/RestTimerContext';
 import { useAddExerciseSet } from '../../hooks/useExerciseLogs';
+import { useSuggestedSet } from '../../hooks/useSuggestedSet';
 import { isDataConflictError } from '../../lib/queryClient';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget, formatSetValue } from '../../lib/exerciseFormat';
 import { skillLabel } from '../../lib/skills';
@@ -46,12 +47,31 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
   const addSet = useAddExerciseSet(workoutLogId);
   const restTimer = useRestTimer();
   const lastSet = card.sets[card.sets.length - 1];
+  const isFirstSetOfSession = card.sets.length === 0;
+  const { data: suggestion } = useSuggestedSet(card.sessionExerciseId, card.name, card.type);
 
   const [reps, setReps] = useState(lastSet?.reps ?? card.target?.target_reps ?? 8);
   const [weight, setWeight] = useState(lastSet?.weight_kg ?? card.target?.target_weight_kg ?? 20);
   const [hold, setHold] = useState(lastSet?.hold_seconds ?? card.target?.target_hold_seconds ?? 20);
   const [variant, setVariant] = useState(lastSet?.progression_variant ?? card.target?.progression_variant ?? '');
   const [showRecordFlash, setShowRecordFlash] = useState(false);
+
+  // Suggestion éditable pour la toute première série de l'exercice dans cette
+  // séance (au-delà, on reprend simplement la série précédente de la séance
+  // en cours, prioritaire) : jamais appliquée automatiquement, juste préremplie.
+  useEffect(() => {
+    if (!isFirstSetOfSession || !suggestion) return;
+    if (card.type === 'reps_weight') {
+      if (suggestion.reps != null) setReps(suggestion.reps);
+      if (suggestion.weight_kg != null) setWeight(suggestion.weight_kg);
+    } else if (card.type === 'isometric') {
+      if (suggestion.hold_seconds != null) setHold(suggestion.hold_seconds);
+    } else if (card.type === 'progression') {
+      if (suggestion.reps != null) setReps(suggestion.reps);
+      if (suggestion.progression_variant) setVariant(suggestion.progression_variant);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestion, isFirstSetOfSession]);
 
   const handleValidate = () => {
     // Démarré tout de suite, pas dans onSuccess : ne dépend pas du réseau, la
@@ -114,6 +134,13 @@ export function ExerciseLogCard({ workoutLogId, card, onEditSet }: Props) {
       ) : null}
 
       <View className="mt-4">
+        {isFirstSetOfSession && suggestion ? (
+          <Text className="mb-2 font-bodyMedium text-xs text-textMuted">
+            {suggestion.bumped
+              ? 'Suggestion : +1 par rapport à la dernière fois (RPE bas)'
+              : 'Suggestion : identique à ta dernière séance'}
+          </Text>
+        ) : null}
         {card.type === 'reps_weight' ? (
           <>
             <Stepper label="Répétitions" value={reps} onChange={setReps} step={1} min={0} max={100} />

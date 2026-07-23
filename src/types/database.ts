@@ -152,6 +152,7 @@ export interface Database {
           session_name: string;
           performed_date: string;
           notes: string | null;
+          rpe: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -162,11 +163,13 @@ export interface Database {
           session_name: string;
           performed_date?: string;
           notes?: string | null;
+          rpe?: number | null;
         };
         Update: {
           session_name?: string;
           performed_date?: string;
           notes?: string | null;
+          rpe?: number | null;
         };
         Relationships: [];
       };

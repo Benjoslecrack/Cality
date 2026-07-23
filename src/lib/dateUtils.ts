@@ -27,6 +27,18 @@ export function startOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+// Lundi de la semaine contenant `date` (convention utilisée par la grille du
+// calendrier : la semaine commence le lundi).
+export function startOfWeek(date: Date): Date {
+  const offset = (date.getDay() + 6) % 7;
+  const result = new Date(date.getFullYear(), date.getMonth(), date.getDate() - offset);
+  return result;
+}
+
+export function shortDateLabel(date: Date): string {
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
 export function addMonths(date: Date, amount: number): Date {
   return new Date(date.getFullYear(), date.getMonth() + amount, 1);
 }

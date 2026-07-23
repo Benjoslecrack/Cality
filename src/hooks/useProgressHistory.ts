@@ -37,3 +37,30 @@ export function useProgressHistoryQuery(filter: Filter) {
     },
   });
 }
+
+// Toutes les séries loggées sur les N derniers mois, tous exercices/skills
+// confondus : sert au volume d'entraînement hebdomadaire (Skills) et à la
+// tendance 3 mois par skill (filtrée ensuite côté client par skill_key).
+export function useAllExerciseLogsQuery(months = 3) {
+  const { session } = useAuth();
+  const userId = session?.user.id;
+
+  return useQuery({
+    queryKey: ['progress_history', 'all', userId, months],
+    enabled: !!userId,
+    queryFn: async () => {
+      const cutoff = new Date();
+      cutoff.setMonth(cutoff.getMonth() - months);
+      const cutoffKey = cutoff.toISOString().slice(0, 10);
+
+      const { data, error } = await supabase
+        .from('exercise_logs')
+        .select('*, workout_logs!inner(performed_date)')
+        .eq('user_id', userId!)
+        .gte('workout_logs.performed_date', cutoffKey)
+        .returns<ProgressLogEntry[]>();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
