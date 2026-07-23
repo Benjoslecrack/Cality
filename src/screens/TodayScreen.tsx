@@ -1,16 +1,30 @@
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { Alert, ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { Button } from '../components/Button';
 import { CalendarEntryCard } from '../components/CalendarEntryCard';
 import { useTodayEntriesQuery } from '../hooks/useCalendarEntries';
+import { useCreateWorkoutLog } from '../hooks/useWorkoutLogs';
 import { formatDayLabel, todayDateKey } from '../lib/dateUtils';
 
 type Props = {
-  navigation: { navigate: (screen: 'SessionPicker', params: { dateKey: string }) => void };
+  navigation: {
+    navigate: (screen: 'SessionPicker' | 'WorkoutLog', params: { dateKey?: string; workoutLogId?: string }) => void;
+  };
 };
 
 export function TodayScreen({ navigation }: Props) {
   const dateKey = todayDateKey();
   const { data: entries, isLoading } = useTodayEntriesQuery();
+  const createWorkoutLog = useCreateWorkoutLog();
+
+  const handleStartFreeSession = () => {
+    createWorkoutLog.mutate(
+      { sessionName: 'Séance libre', performedDate: dateKey, calendarEntryId: null },
+      {
+        onSuccess: (data) => navigation.navigate('WorkoutLog', { workoutLogId: data.id }),
+        onError: (error) => Alert.alert('Erreur', (error as Error).message),
+      }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -39,8 +53,9 @@ export function TodayScreen({ navigation }: Props) {
         }
         renderItem={({ item }) => <CalendarEntryCard entry={item} />}
         ListFooterComponent={
-          <View className="mt-4">
+          <View className="mt-4 gap-3">
             <Button label="Planifier une séance" variant="secondary" onPress={() => navigation.navigate('SessionPicker', { dateKey })} />
+            <Button label="Démarrer une séance libre" onPress={handleStartFreeSession} loading={createWorkoutLog.isPending} />
           </View>
         }
       />

@@ -1,7 +1,9 @@
 import { Alert, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import type { CalendarEntryWithSession } from '../hooks/useCalendarEntries';
 import { useDeleteCalendarEntry, useUpdateCalendarEntryStatus } from '../hooks/useCalendarEntries';
+import { useCreateWorkoutLog, useWorkoutLogByCalendarEntryQuery } from '../hooks/useWorkoutLogs';
 import type { CalendarStatus } from '../types/database';
 
 const STATUS_STYLES: Record<CalendarStatus, { label: string; badgeClass: string; textClass: string }> = {
@@ -11,8 +13,13 @@ const STATUS_STYLES: Record<CalendarStatus, { label: string; badgeClass: string;
 };
 
 export function CalendarEntryCard({ entry }: { entry: CalendarEntryWithSession }) {
+  // Typage volontairement large : ce composant est réutilisé dans plusieurs
+  // stacks (Aujourd'hui, Calendrier) qui déclarent chacun l'écran WorkoutLog.
+  const navigation = useNavigation<{ navigate: (screen: string, params?: object) => void }>();
   const updateStatus = useUpdateCalendarEntryStatus();
   const deleteEntry = useDeleteCalendarEntry();
+  const createWorkoutLog = useCreateWorkoutLog();
+  const { data: existingLog } = useWorkoutLogByCalendarEntryQuery(entry.id);
   const statusStyle = STATUS_STYLES[entry.status];
 
   const setStatus = (status: CalendarStatus) => updateStatus.mutate({ id: entry.id, status });
@@ -22,6 +29,24 @@ export function CalendarEntryCard({ entry }: { entry: CalendarEntryWithSession }
       { text: 'Annuler', style: 'cancel' },
       { text: 'Retirer', style: 'destructive', onPress: () => deleteEntry.mutate(entry.id) },
     ]);
+  };
+
+  const handleLog = () => {
+    if (existingLog) {
+      navigation.navigate('WorkoutLog', { workoutLogId: existingLog.id });
+      return;
+    }
+    createWorkoutLog.mutate(
+      {
+        sessionName: entry.program_sessions?.name ?? 'Séance',
+        performedDate: entry.scheduled_date,
+        calendarEntryId: entry.id,
+      },
+      {
+        onSuccess: (data) => navigation.navigate('WorkoutLog', { workoutLogId: data.id }),
+        onError: (error) => Alert.alert('Erreur', (error as Error).message),
+      }
+    );
   };
 
   return (
@@ -58,6 +83,12 @@ export function CalendarEntryCard({ entry }: { entry: CalendarEntryWithSession }
           <Ionicons name="trash-outline" size={18} color="#9AA1AA" />
         </Pressable>
       </View>
+
+      <Pressable onPress={handleLog} className="mt-2 items-center rounded-lg bg-primary py-2">
+        <Text className="text-sm font-semibold text-white">
+          {existingLog ? 'Voir le log' : 'Logger cette séance'}
+        </Text>
+      </Pressable>
     </View>
   );
 }
