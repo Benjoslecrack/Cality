@@ -27,6 +27,10 @@ export function SessionEditorScreen({ navigation, route }: Props) {
   const showActions = (item: NonNullable<typeof exercises>[number]) => {
     Alert.alert(item.name, undefined, [
       {
+        text: "Voir l'historique",
+        onPress: () => navigation.navigate('ExerciseHistory', { sessionExerciseId: item.id, title: item.name }),
+      },
+      {
         text: 'Modifier',
         onPress: () =>
           navigation.navigate('ExerciseForm', {

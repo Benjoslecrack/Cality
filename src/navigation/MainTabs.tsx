@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ComingSoonScreen } from '../screens/ComingSoonScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { CalendarStack } from './CalendarStack';
 import { ProgramsStack } from './ProgramsStack';
+import { SkillsStack } from './SkillsStack';
 import { TodayStack } from './TodayStack';
 
 export type MainTabParamList = {
@@ -15,10 +15,6 @@ export type MainTabParamList = {
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
-
-function SkillsScreen() {
-  return <ComingSoonScreen title="Skills" />;
-}
 
 const ICONS: Record<keyof MainTabParamList, keyof typeof Ionicons.glyphMap> = {
   Today: 'today-outline',
@@ -46,7 +42,7 @@ export function MainTabs() {
       <Tab.Screen name="Today" component={TodayStack} options={{ title: "Aujourd'hui", headerShown: false }} />
       <Tab.Screen name="Calendar" component={CalendarStack} options={{ title: 'Calendrier', headerShown: false }} />
       <Tab.Screen name="Programs" component={ProgramsStack} options={{ title: 'Programmes', headerShown: false }} />
-      <Tab.Screen name="Skills" component={SkillsScreen} options={{ title: 'Skills' }} />
+      <Tab.Screen name="Skills" component={SkillsStack} options={{ title: 'Skills', headerShown: false }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil', headerShown: false }} />
     </Tab.Navigator>
   );

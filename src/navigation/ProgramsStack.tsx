@@ -6,6 +6,7 @@ import { ProgramDetailScreen } from '../screens/programs/ProgramDetailScreen';
 import { SessionFormScreen } from '../screens/programs/SessionFormScreen';
 import { SessionEditorScreen } from '../screens/programs/SessionEditorScreen';
 import { ExerciseFormScreen } from '../screens/programs/ExerciseFormScreen';
+import { ProgressHistoryScreen } from '../screens/progress/ProgressHistoryScreen';
 
 export type ProgramsStackParamList = {
   ProgramsList: undefined;
@@ -18,6 +19,7 @@ export type ProgramsStackParamList = {
     exerciseId?: string;
     initialValues?: SessionExerciseInput;
   };
+  ExerciseHistory: { sessionExerciseId: string; title: string };
 };
 
 const Stack = createNativeStackNavigator<ProgramsStackParamList>();
@@ -49,6 +51,11 @@ export function ProgramsStack() {
         name="ExerciseForm"
         component={ExerciseFormScreen}
         options={{ title: 'Exercice', presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="ExerciseHistory"
+        component={ProgressHistoryScreen}
+        options={({ route }) => ({ title: route.params.title })}
       />
     </Stack.Navigator>
   );
