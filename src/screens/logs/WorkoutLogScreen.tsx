@@ -136,7 +136,7 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
   if (isLoadingLog || isLoadingLogs || !workoutLog) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -149,7 +149,7 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
       {hasPlan ? (
         <Pressable
           onPress={() => navigation.navigate('GuidedSession', { workoutLogId })}
-          className="mb-4 min-h-11 items-center justify-center rounded-xl border border-accentDim py-3"
+          className="mb-4 min-h-11 items-center justify-center border-2 border-accent py-3"
         >
           <Text className="font-bodySemibold text-sm text-text">Démarrer en mode guidé</Text>
         </Pressable>
@@ -168,7 +168,7 @@ export function WorkoutLogScreen({ navigation, route }: Props) {
 
       <Pressable
         onPress={() => navigation.navigate('AddLogExercise', { workoutLogId })}
-        className="mb-6 min-h-11 items-center justify-center rounded-xl bg-surface py-3.5"
+        className="mb-6 min-h-11 items-center justify-center border-2 border-border bg-surface py-3.5"
       >
         <Text className="font-bodyMedium text-text">+ Ajouter un exercice</Text>
       </Pressable>

@@ -24,10 +24,10 @@ export function CalendarStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: COLORS.bgBase },
+        headerStyle: { backgroundColor: COLORS.bgNight },
         headerTintColor: COLORS.textPrimary,
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: COLORS.bgBase },
+        contentStyle: { backgroundColor: COLORS.bgNight },
       }}
     >
       <Stack.Screen name="CalendarMonth" component={CalendarMonthScreen} options={{ title: 'Calendrier' }} />

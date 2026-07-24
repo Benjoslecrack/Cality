@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RankBadge } from '../../components/RankBadge';
 import { SimpleBarChart } from '../../components/SimpleBarChart';
-import { SteelBar } from '../../components/SteelBar';
+import { XPBar } from '../../components/XPBar';
 import { useSkillCatalogQuery, useSkillLogsQuery, useUserSkillProgressQuery } from '../../hooks/useSkillRanks';
 import { formatSetValue } from '../../lib/exerciseFormat';
 import { progressPoint } from '../../lib/progressValue';
@@ -57,7 +57,7 @@ export function SkillDetailScreen({ route }: Props) {
   if (loadingCatalog || loadingProgress || loadingLogs || !skill) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -70,18 +70,18 @@ export function SkillDetailScreen({ route }: Props) {
       <RankBadge rank={highest?.rank ?? null} subLevel={highest?.subLevel} />
 
       {next ? (
-        <View style={CARD_SHADOW} className="mb-6 mt-3 rounded-2xl bg-surface p-4">
+        <View style={CARD_SHADOW} className="mb-6 mt-3 border-2 border-border bg-surface p-4">
           <Text className="font-bodyMedium text-sm text-textMuted">Prochain objectif</Text>
           <Text className="mt-1 font-bodyMedium text-xs" style={{ color: RANK_COLORS[next.rank] }}>
             {formatRankLabel(next.rank, next.subLevel)}
           </Text>
           <Text className="mt-1 font-display text-2xl text-text">{next.label}</Text>
           <View className="mt-3">
-            <SteelBar progress={tierProgress(next, logs ?? [])} fillColors={[COLORS.textMuted, RANK_COLORS[next.rank]]} />
+            <XPBar progress={tierProgress(next, logs ?? [])} fillColors={[COLORS.textMuted, RANK_COLORS[next.rank]]} />
           </View>
         </View>
       ) : (
-        <View style={CARD_SHADOW} className="mb-6 mt-3 items-center rounded-2xl bg-surface p-6">
+        <View style={CARD_SHADOW} className="mb-6 mt-3 items-center border-2 border-border bg-surface p-6">
           <Text className="text-center font-bodySemibold text-base text-accent">
             Rang Maître III atteint sur ce skill. Bravo !
           </Text>
@@ -97,7 +97,7 @@ export function SkillDetailScreen({ route }: Props) {
             <View
               key={tier.id}
               style={CARD_SHADOW}
-              className={`flex-row items-center rounded-xl bg-surface px-4 py-3 ${unlocked ? '' : 'opacity-60'}`}
+              className={`flex-row items-center border-2 border-border bg-surface px-4 py-3 ${unlocked ? '' : 'opacity-60'}`}
             >
               <Ionicons
                 name={unlocked ? 'checkmark-circle' : 'ellipse-outline'}
@@ -137,7 +137,7 @@ export function SkillDetailScreen({ route }: Props) {
           <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Historique</Text>
           <View className="gap-2">
             {[...logs].reverse().map((log) => (
-              <View key={log.id} className="flex-row items-center justify-between rounded-xl bg-surface px-4 py-3">
+              <View key={log.id} className="flex-row items-center justify-between border-2 border-border bg-surface px-4 py-3">
                 <Text className="font-body text-xs text-textMuted">
                   {dayLabel(log.performedDate ?? log.createdAt.slice(0, 10))}
                 </Text>
@@ -147,7 +147,7 @@ export function SkillDetailScreen({ route }: Props) {
           </View>
         </View>
       ) : (
-        <View style={CARD_SHADOW} className="items-center rounded-2xl bg-surface p-6">
+        <View style={CARD_SHADOW} className="items-center border-2 border-border bg-surface p-6">
           <Text className="text-center font-body text-textMuted">
             Pas encore de série loggée pour ce skill. Log une séance pour voir apparaître ton historique ici.
           </Text>

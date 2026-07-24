@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useExportLogsCsv, useExportProgressPdf } from '../hooks/useDataExport';
 import { useProfile, useUpdateProfile } from '../hooks/useProfile';
 import type { MainTabParamList } from '../navigation/MainTabs';
+import { COLORS } from '../theme/tokens';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Profile'>;
 
@@ -51,15 +52,15 @@ export function ProfileScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-6 pb-12 pt-16">
-      <Text className="mb-1 text-3xl font-bold text-text">Profil</Text>
-      <Text className="mb-8 text-textMuted">{session?.user.email}</Text>
+      <Text className="mb-1 font-displayBold text-3xl text-text">Profil</Text>
+      <Text className="mb-8 font-body text-textMuted">{session?.user.email}</Text>
 
       <TextField label="Pseudo" value={username} onChangeText={setUsername} placeholder="Ton pseudo" />
 
@@ -72,7 +73,7 @@ export function ProfileScreen({ navigation }: Props) {
         />
       </View>
 
-      <Text className="mb-3 text-sm font-medium text-textMuted">Skills</Text>
+      <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Skills</Text>
       <View className="mb-8">
         <Button
           label="Sélectionner mes skills actifs"
@@ -81,7 +82,7 @@ export function ProfileScreen({ navigation }: Props) {
         />
       </View>
 
-      <Text className="mb-3 text-sm font-medium text-textMuted">Mes données</Text>
+      <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Mes données</Text>
       <View className="mb-8 gap-3">
         <Button
           label="Exporter mon historique (CSV)"

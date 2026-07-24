@@ -6,6 +6,7 @@ import { useDeleteSessionExercise, useSessionExercisesQuery } from '../../hooks/
 import { useSkillCatalogQuery } from '../../hooks/useSkillRanks';
 import { EXERCISE_TYPE_LABELS, formatExerciseTarget } from '../../lib/exerciseFormat';
 import type { ProgramsStackParamList } from '../../navigation/ProgramsStack';
+import { COLORS } from '../../theme/tokens';
 
 type Props = NativeStackScreenProps<ProgramsStackParamList, 'SessionEditor'>;
 
@@ -20,7 +21,7 @@ export function SessionEditorScreen({ navigation, route }: Props) {
     navigation.setOptions({
       headerRight: () => (
         <Pressable onPress={() => navigation.navigate('ExerciseForm', { programSessionId })} hitSlop={8}>
-          <Ionicons name="add" size={26} color="#F5F6F7" />
+          <Ionicons name="add" size={26} color={COLORS.textPrimary} />
         </Pressable>
       ),
     });
@@ -68,7 +69,7 @@ export function SessionEditorScreen({ navigation, route }: Props) {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -81,7 +82,7 @@ export function SessionEditorScreen({ navigation, route }: Props) {
         contentContainerClassName="px-6 py-6 gap-3"
         ListEmptyComponent={
           <View className="mt-16 items-center px-6">
-            <Text className="mb-2 text-lg font-semibold text-text">Aucun exercice pour l'instant</Text>
+            <Text className="mb-2 font-display text-xl text-text">Aucun exercice pour l'instant</Text>
             <Text className="text-center text-textMuted">
               Ajoute un exercice avec le bouton + en haut à droite.
             </Text>
@@ -90,13 +91,13 @@ export function SessionEditorScreen({ navigation, route }: Props) {
         renderItem={({ item }) => (
           <Pressable
             onPress={() => showActions(item)}
-            className="rounded-2xl border border-border bg-surface p-4"
+            className="border-2 border-border bg-surface p-4"
           >
             <View className="flex-row items-center justify-between">
-              <Text className="text-base font-semibold text-text">{item.name}</Text>
+              <Text className="font-bodySemibold text-base text-text">{item.name}</Text>
               {item.skill_id && skillNameById.has(item.skill_id) ? (
-                <View className="rounded-full border border-primary bg-primaryMuted px-2.5 py-0.5">
-                  <Text className="text-xs font-medium text-text">{skillNameById.get(item.skill_id)}</Text>
+                <View className="border-2 border-primary bg-primaryMuted px-2.5 py-0.5">
+                  <Text className="font-bodyMedium text-xs text-text">{skillNameById.get(item.skill_id)}</Text>
                 </View>
               ) : null}
             </View>

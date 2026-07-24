@@ -72,7 +72,7 @@ export function buildProgressSummaryHtml(summaries: SkillSummary[], generatedAt 
 <head>
 <meta charset="utf-8" />
 <style>
-  body { background: ${COLORS.bgBase}; color: ${COLORS.textPrimary}; font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 0; padding: 32px; }
+  body { background: ${COLORS.bgNight}; color: ${COLORS.textPrimary}; font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 0; padding: 32px; }
   h1 { font-size: 24px; margin: 0 0 4px; }
   .subtitle { color: ${COLORS.textMuted}; font-size: 12px; margin: 0 0 24px; }
   .card { background: ${COLORS.bgSurface}; border-radius: 16px; padding: 20px; margin-bottom: 16px; page-break-inside: avoid; }
@@ -85,7 +85,7 @@ export function buildProgressSummaryHtml(summaries: SkillSummary[], generatedAt 
   .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
   .bar-value { font-size: 9px; color: ${COLORS.textMuted}; margin-bottom: 2px; font-family: 'Courier New', monospace; }
   .bar { width: 100%; background: rgba(138, 145, 152, 0.25); border-radius: 4px 4px 0 0; }
-  .bar-accent { background: ${COLORS.accent}; }
+  .bar-accent { background: ${COLORS.neonMagenta}; }
   .bar-label { font-size: 9px; color: ${COLORS.textMuted}; margin-top: 4px; }
   .empty { color: ${COLORS.textMuted}; font-size: 12px; }
 </style>

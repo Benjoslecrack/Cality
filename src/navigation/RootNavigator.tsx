@@ -12,10 +12,10 @@ const navigationTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: COLORS.bgBase,
+    background: COLORS.bgNight,
     card: COLORS.bgSurface,
     border: COLORS.bgSurface,
-    primary: COLORS.accent,
+    primary: COLORS.neonCyan,
     text: COLORS.textPrimary,
   },
 };
@@ -27,7 +27,7 @@ export function RootNavigator() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }

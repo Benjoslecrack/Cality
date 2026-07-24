@@ -35,7 +35,7 @@ export function ProgressHistoryScreen({ route }: Props) {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -47,7 +47,7 @@ export function ProgressHistoryScreen({ route }: Props) {
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-6 pb-12 pt-6">
       {latest ? (
-        <View className="mb-6 rounded-2xl bg-surface p-4">
+        <View className="mb-6 border-2 border-border bg-surface p-4">
           <Text className="font-body text-sm text-textMuted">Dernier record</Text>
           <View className="mt-1 flex-row items-center gap-2">
             <Text className="font-mono text-2xl text-text">
@@ -61,7 +61,7 @@ export function ProgressHistoryScreen({ route }: Props) {
           </View>
         </View>
       ) : (
-        <View className="mb-6 items-center rounded-2xl bg-surface p-6">
+        <View className="mb-6 items-center border-2 border-border bg-surface p-6">
           <Text className="text-center font-body text-textMuted">
             Pas encore de série loggée pour cet exercice. Log une séance pour voir apparaître ton historique ici.
           </Text>
@@ -87,7 +87,7 @@ export function ProgressHistoryScreen({ route }: Props) {
           <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Historique</Text>
           <View className="gap-2">
             {[...history].reverse().map((entry) => (
-              <View key={entry.id} className="flex-row items-center justify-between rounded-xl bg-surface px-4 py-3">
+              <View key={entry.id} className="flex-row items-center justify-between border-2 border-border bg-surface px-4 py-3">
                 <View>
                   <Text className="font-body text-text">{entry.exercise_name}</Text>
                   {entry.workout_logs ? (

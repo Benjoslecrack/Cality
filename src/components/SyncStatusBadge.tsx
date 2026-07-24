@@ -12,7 +12,7 @@ export function SyncStatusBadge() {
 
   return (
     <View className="items-center">
-      <View className={`rounded-full border px-3 py-1 ${isError ? 'border-accent bg-accentDim/40' : 'border-accentDim bg-surface'}`}>
+      <View className={`border-2 px-3 py-1 ${isError ? 'border-accent bg-accentDim/40' : 'border-accentCyan bg-surface'}`}>
         <Text className="font-bodyMedium text-xs text-text">
           {isError ? 'Erreur de synchronisation' : `En attente de sync${pendingCount > 1 ? ` (${pendingCount})` : ''}`}
         </Text>

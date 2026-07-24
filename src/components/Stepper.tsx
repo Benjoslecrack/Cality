@@ -22,11 +22,11 @@ export function Stepper({ label, value, onChange, step = 1, min = 0, max = 999, 
       <View className="flex-row items-center gap-3">
         <Pressable
           onPress={decrement}
-          className="h-11 w-11 items-center justify-center rounded-xl border border-accentDim"
+          className="h-11 w-11 items-center justify-center border-2 border-accent"
         >
           <Text className="font-display text-2xl text-text">–</Text>
         </Pressable>
-        <View className="min-w-[84px] flex-1 items-center rounded-xl bg-surface py-2">
+        <View className="min-w-[84px] flex-1 items-center border-2 border-border bg-surface py-2">
           <Text className="font-mono text-xl text-text">
             {value}
             {suffix ? <Text className="font-mono text-base text-textMuted"> {suffix}</Text> : null}
@@ -34,7 +34,7 @@ export function Stepper({ label, value, onChange, step = 1, min = 0, max = 999, 
         </View>
         <Pressable
           onPress={increment}
-          className="h-11 w-11 items-center justify-center rounded-xl border border-accentDim"
+          className="h-11 w-11 items-center justify-center border-2 border-accent"
         >
           <Text className="font-display text-2xl text-text">+</Text>
         </Pressable>

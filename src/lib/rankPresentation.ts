@@ -9,16 +9,16 @@ export const RANK_LABELS: Record<SkillRank, string> = {
   master: 'Maître',
 };
 
-// Déclinaison de l'accent existant plutôt que de nouvelles teintes "médaille"
-// (or/argent/bronze littéraux casseraient l'univers acier/béton établi) : du
-// gris neutre "pas encore accentué" (Fer) à un accent intensifié (Maître), en
-// passant par accentDim déjà utilisé ailleurs dans l'app (Bronze).
+// Palette de médailles pixel art : du plus terne (Fer) au plus éclatant
+// (Maître, en néon magenta plein — animé dans RankBadge). Bronze/Argent/Or
+// dérivent des teintes chaudes/froides de la palette synthwave plutôt que de
+// couleurs "médaille" littérales, pour rester cohérents avec le reste de l'app.
 export const RANK_COLORS: Record<SkillRank, string> = {
   iron: COLORS.textMuted,
-  bronze: COLORS.accentDim,
-  silver: '#BD471C',
-  gold: COLORS.accent,
-  master: '#FF7847',
+  bronze: '#C9793F',
+  silver: '#7DD3E0',
+  gold: '#FFB627',
+  master: COLORS.neonMagenta,
 };
 
 const SUB_LEVEL_NUMERALS: Record<number, string> = { 1: 'I', 2: 'II', 3: 'III' };

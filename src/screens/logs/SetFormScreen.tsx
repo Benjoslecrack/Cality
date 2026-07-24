@@ -90,7 +90,7 @@ export function SetFormScreen({ navigation, route }: Props) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 bg-background">
       <ScrollView contentContainerClassName="px-6 pt-6" keyboardShouldPersistTaps="handled">
-        <Text className="mb-4 text-lg font-semibold text-text">{exerciseName}</Text>
+        <Text className="mb-4 font-display text-2xl text-text">{exerciseName}</Text>
 
         {type === 'reps_weight' ? (
           <>

@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, Text } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { COLORS } from '../theme/tokens';
 
 type ButtonProps = {
@@ -9,23 +9,45 @@ type ButtonProps = {
   disabled?: boolean;
 };
 
+const SHADOW_OFFSET = 4;
+
+// Bouton "pixel" : coins nets (pas d'arrondi), bordure 2px et ombre pleine
+// décalée façon bouton de menu 16-bit. Au press, le bouton glisse dans son
+// ombre pour simuler l'enfoncement — grands hitbox tactiles inchangés.
 export function Button({ label, onPress, variant = 'primary', loading, disabled }: ButtonProps) {
   const isPrimary = variant === 'primary';
+  const isInactive = disabled || loading;
+
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled || loading}
-      className={`min-h-11 items-center justify-center rounded-xl py-3 ${
-        isPrimary ? 'bg-accent' : 'border border-accentDim bg-transparent'
-      } ${disabled || loading ? 'opacity-50' : ''}`}
-    >
-      {loading ? (
-        <ActivityIndicator color={isPrimary ? COLORS.onAccent : COLORS.textPrimary} />
-      ) : (
-        <Text className={`font-bodySemibold text-base ${isPrimary ? 'text-onAccent' : 'text-text'}`}>
-          {label}
-        </Text>
-      )}
-    </Pressable>
+    <View style={{ position: 'relative', opacity: isInactive ? 0.5 : 1 }}>
+      <View
+        style={{
+          position: 'absolute',
+          top: SHADOW_OFFSET,
+          left: SHADOW_OFFSET,
+          right: -SHADOW_OFFSET,
+          bottom: -SHADOW_OFFSET,
+          backgroundColor: isPrimary ? COLORS.accentDim : COLORS.bgSurface,
+        }}
+      />
+      <Pressable
+        onPress={onPress}
+        disabled={isInactive}
+        className={`min-h-11 items-center justify-center border-2 py-3 ${
+          isPrimary ? 'border-accentDim bg-accent' : 'border-accent bg-transparent'
+        }`}
+        style={({ pressed }) => [
+          pressed ? { transform: [{ translateX: SHADOW_OFFSET }, { translateY: SHADOW_OFFSET }] } : null,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator color={isPrimary ? COLORS.onAccent : COLORS.textPrimary} />
+        ) : (
+          <Text className={`font-bodySemibold text-base ${isPrimary ? 'text-onAccent' : 'text-text'}`}>
+            {label}
+          </Text>
+        )}
+      </Pressable>
+    </View>
   );
 }

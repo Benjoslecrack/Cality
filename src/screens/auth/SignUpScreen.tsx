@@ -48,8 +48,8 @@ export function SignUpScreen({ navigation }: Props) {
       className="flex-1 bg-background"
     >
       <ScrollView contentContainerClassName="flex-1 justify-center px-6" keyboardShouldPersistTaps="handled">
-        <Text className="mb-1 text-3xl font-bold text-text">Créer un compte</Text>
-        <Text className="mb-8 text-base text-textMuted">
+        <Text className="mb-1 font-displayBold text-3xl text-text">Créer un compte</Text>
+        <Text className="mb-8 font-body text-base text-textMuted">
           Rejoins Cality pour suivre ta progression en street workout.
         </Text>
 
@@ -76,10 +76,10 @@ export function SignUpScreen({ navigation }: Props) {
         />
 
         <Text
-          className="mb-6 text-center text-textMuted"
+          className="mb-6 text-center font-body text-textMuted"
           onPress={() => navigation.navigate('SignIn')}
         >
-          Déjà un compte ? <Text className="font-semibold text-primary">Se connecter</Text>
+          Déjà un compte ? <Text className="font-bodySemibold text-primary">Se connecter</Text>
         </Text>
 
         <Button label="Créer mon compte" onPress={handleSignUp} loading={loading} />

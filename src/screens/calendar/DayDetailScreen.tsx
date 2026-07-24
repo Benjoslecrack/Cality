@@ -8,6 +8,7 @@ import { useDayEntriesQuery } from '../../hooks/useCalendarEntries';
 import { useFreeWorkoutLogsByDateQuery } from '../../hooks/useWorkoutLogs';
 import { formatDayLabel } from '../../lib/dateUtils';
 import type { CalendarStackParamList } from '../../navigation/CalendarStack';
+import { COLORS } from '../../theme/tokens';
 
 type Props = NativeStackScreenProps<CalendarStackParamList, 'DayDetail'>;
 
@@ -25,7 +26,7 @@ export function DayDetailScreen({ navigation, route }: Props) {
       title: formatDayLabel(dateKey),
       headerRight: () => (
         <Pressable onPress={() => navigation.navigate('SessionPicker', { dateKey })} hitSlop={8}>
-          <Ionicons name="add" size={26} color="#F5F6F7" />
+          <Ionicons name="add" size={26} color={COLORS.textPrimary} />
         </Pressable>
       ),
     });
@@ -40,7 +41,7 @@ export function DayDetailScreen({ navigation, route }: Props) {
   if (isLoadingEntries || isLoadingFreeLogs) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#F2545B" />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -53,8 +54,8 @@ export function DayDetailScreen({ navigation, route }: Props) {
         contentContainerClassName="px-6 py-6 gap-3"
         ListEmptyComponent={
           <View className="mt-16 items-center px-6">
-            <Text className="mb-2 text-lg font-semibold text-text">Aucune séance prévue</Text>
-            <Text className="text-center text-textMuted">
+            <Text className="mb-2 font-display text-xl text-text">Aucune séance prévue</Text>
+            <Text className="text-center font-body text-textMuted">
               Assigne une séance à ce jour avec le bouton + en haut à droite.
             </Text>
           </View>

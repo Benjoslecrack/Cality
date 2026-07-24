@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RankBadge } from '../../components/RankBadge';
 import { SimpleBarChart } from '../../components/SimpleBarChart';
-import { SteelBar } from '../../components/SteelBar';
+import { XPBar } from '../../components/XPBar';
 import { useAllExerciseLogsQuery } from '../../hooks/useProgressHistory';
 import {
   useSkillCatalogQuery,
@@ -50,7 +50,7 @@ export function SkillsListScreen({ navigation }: Props) {
   if (loadingCatalog || loadingSelection) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -60,10 +60,10 @@ export function SkillsListScreen({ navigation }: Props) {
       <Pressable
         onPress={() => navigation.navigate('PhotoTimeline')}
         style={CARD_SHADOW}
-        className="mb-1 flex-row items-center justify-between rounded-2xl bg-surface p-4"
+        className="mb-1 flex-row items-center justify-between border-2 border-border bg-surface p-4"
       >
         <View className="flex-row items-center gap-3">
-          <Ionicons name="images-outline" size={20} color={COLORS.accent} />
+          <Ionicons name="images-outline" size={20} color={COLORS.neonCyan} />
           <Text className="font-bodySemibold text-base text-text">Photos de progression</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
@@ -72,17 +72,17 @@ export function SkillsListScreen({ navigation }: Props) {
       <Pressable
         onPress={() => navigation.navigate('SkillSelection')}
         style={CARD_SHADOW}
-        className="mb-2 flex-row items-center justify-between rounded-2xl bg-surface p-4"
+        className="mb-2 flex-row items-center justify-between border-2 border-border bg-surface p-4"
       >
         <View className="flex-row items-center gap-3">
-          <Ionicons name="options-outline" size={20} color={COLORS.accent} />
+          <Ionicons name="options-outline" size={20} color={COLORS.neonCyan} />
           <Text className="font-bodySemibold text-base text-text">Sélectionner mes skills</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
       </Pressable>
 
       {weeklyVolume.length > 1 ? (
-        <View style={CARD_SHADOW} className="mb-1 rounded-2xl bg-surface p-4">
+        <View style={CARD_SHADOW} className="mb-1 border-2 border-border bg-surface p-4">
           <Text className="mb-3 font-bodyMedium text-sm text-textMuted">
             Volume d'entraînement — séries par semaine
           </Text>
@@ -91,7 +91,7 @@ export function SkillsListScreen({ navigation }: Props) {
       ) : null}
 
       {visibleSkills.length === 0 && !showAll ? (
-        <View style={CARD_SHADOW} className="items-center rounded-2xl bg-surface p-6">
+        <View style={CARD_SHADOW} className="items-center border-2 border-border bg-surface p-6">
           <Text className="text-center font-body text-textMuted">
             Aucun skill actif pour l'instant. Choisis ceux que tu travailles en ce moment.
           </Text>
@@ -139,11 +139,11 @@ function SkillCard({
   }, [skill, unlockedTierIds, logs]);
 
   return (
-    <Pressable onPress={onPress} style={CARD_SHADOW} className="mb-3 w-[48%] rounded-2xl bg-surface p-4">
+    <Pressable onPress={onPress} style={CARD_SHADOW} className="mb-3 w-[48%] border-2 border-border bg-surface p-4">
       <Text className="mb-2 font-bodySemibold text-base text-text">{skill.name}</Text>
       <RankBadge rank={highest?.rank ?? null} subLevel={highest?.subLevel} />
       <View className="mt-3">
-        <SteelBar
+        <XPBar
           progress={progress}
           fillColors={next ? [COLORS.textMuted, RANK_COLORS[next.rank]] : [RANK_COLORS.master, RANK_COLORS.master]}
         />

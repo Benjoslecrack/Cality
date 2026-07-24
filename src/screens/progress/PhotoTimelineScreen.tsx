@@ -30,7 +30,7 @@ export function PhotoTimelineScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={COLORS.accent} />
+        <ActivityIndicator color={COLORS.neonCyan} />
       </View>
     );
   }
@@ -43,7 +43,7 @@ export function PhotoTimelineScreen({ navigation }: Props) {
         </View>
 
         {!photos || photos.length === 0 ? (
-          <View style={CARD_SHADOW} className="items-center rounded-2xl bg-surface p-6">
+          <View style={CARD_SHADOW} className="items-center border-2 border-border bg-surface p-6">
             <Text className="text-center font-body text-textMuted">
               Pas encore de photo de progression. Ajoute-en une pour commencer ta timeline.
             </Text>
@@ -55,7 +55,7 @@ export function PhotoTimelineScreen({ navigation }: Props) {
                 key={photo.id}
                 onLongPress={() => confirmDelete(photo)}
                 style={CARD_SHADOW}
-                className="overflow-hidden rounded-2xl bg-surface"
+                className="overflow-hidden border-2 border-border bg-surface"
               >
                 {photo.signedUrl ? (
                   <Image
@@ -91,7 +91,7 @@ function Button({ navigation }: { navigation: Props['navigation'] }) {
     <Pressable
       onPress={() => navigation.navigate('AddProgressPhoto')}
       style={CARD_SHADOW}
-      className="flex-row items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-3"
+      className="flex-row items-center justify-center gap-2 border-2 border-accentDim bg-accent px-4 py-3"
     >
       <Ionicons name="camera-outline" size={20} color={COLORS.onAccent} />
       <Text className="font-bodySemibold text-base text-onAccent">Ajouter une photo</Text>
