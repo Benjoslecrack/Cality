@@ -20,6 +20,17 @@ import { COLORS } from '../../theme/tokens';
 
 type Props = NativeStackScreenProps<CalendarStackParamList, 'CalendarMonth'>;
 
+// Priorité d'affichage quand un jour a plusieurs entrées de statuts
+// différents (rare) : une séance faite l'emporte toujours visuellement,
+// même si une autre a été sautée le même jour.
+type DotStatus = 'done' | 'skipped' | 'planned';
+const DOT_PRIORITY: Record<DotStatus, number> = { done: 3, skipped: 2, planned: 1 };
+const DOT_COLORS: Record<DotStatus, string> = {
+  done: COLORS.neonCyan,
+  skipped: COLORS.sunsetOrange,
+  planned: COLORS.textMuted,
+};
+
 export function CalendarMonthScreen({ navigation }: Props) {
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [selectedDateKey, setSelectedDateKey] = useState(() => todayDateKey());
@@ -32,15 +43,21 @@ export function CalendarMonthScreen({ navigation }: Props) {
   const { data: freeLogs } = useFreeWorkoutLogsRangeQuery(startKey, endKey);
   const { data: selectedDayEntries } = useDayEntriesQuery(selectedDateKey);
 
-  const entryCountByDate = useMemo(() => {
-    const counts = new Map<string, number>();
+  const statusByDate = useMemo(() => {
+    const map = new Map<string, DotStatus>();
+    const upsert = (dateKey: string, status: DotStatus) => {
+      const current = map.get(dateKey);
+      if (!current || DOT_PRIORITY[status] > DOT_PRIORITY[current]) map.set(dateKey, status);
+    };
     for (const entry of entries ?? []) {
-      counts.set(entry.scheduled_date, (counts.get(entry.scheduled_date) ?? 0) + 1);
+      upsert(entry.scheduled_date, entry.status);
     }
+    // Un log libre n'a pas de statut propre, mais représente une séance
+    // réellement faite : compte comme "done" pour le point du jour.
     for (const log of freeLogs ?? []) {
-      counts.set(log.performed_date, (counts.get(log.performed_date) ?? 0) + 1);
+      upsert(log.performed_date, 'done');
     }
-    return counts;
+    return map;
   }, [entries, freeLogs]);
 
   return (
@@ -70,7 +87,7 @@ export function CalendarMonthScreen({ navigation }: Props) {
           const dateKey = toDateKey(date);
           const isToday = isSameDay(date, today);
           const isSelected = dateKey === selectedDateKey;
-          const entryCount = entryCountByDate.get(dateKey) ?? 0;
+          const dotStatus = statusByDate.get(dateKey);
 
           return (
             <Pressable
@@ -95,8 +112,8 @@ export function CalendarMonthScreen({ navigation }: Props) {
                   {date.getDate()}
                 </Text>
               </View>
-              {entryCount > 0 ? (
-                <View className="mt-1 h-1.5 w-1.5 bg-accentCyan" />
+              {dotStatus ? (
+                <View className="mt-1 h-1.5 w-1.5" style={{ backgroundColor: DOT_COLORS[dotStatus] }} />
               ) : (
                 <View className="mt-1 h-1.5 w-1.5" />
               )}

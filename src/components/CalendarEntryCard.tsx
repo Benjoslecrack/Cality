@@ -15,7 +15,7 @@ import type { CalendarStatus } from '../types/database';
 const STATUS_META: Record<CalendarStatus, { label: string; icon: keyof typeof Ionicons.glyphMap; iconColor: string } | null> = {
   planned: null, // état par défaut, pas besoin de le signaler
   done: { label: 'Faite', icon: 'checkmark-circle', iconColor: COLORS.neonCyan },
-  skipped: { label: 'Sautée', icon: 'play-skip-forward-circle-outline', iconColor: COLORS.textMuted },
+  skipped: { label: 'Sautée', icon: 'play-skip-forward-circle-outline', iconColor: COLORS.sunsetOrange },
 };
 
 type Props = {

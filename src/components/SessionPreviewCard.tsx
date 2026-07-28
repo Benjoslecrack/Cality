@@ -30,8 +30,10 @@ export function SessionPreviewCard({ entry }: Props) {
       <View style={CARD_SHADOW} className="border-2 border-border bg-surface p-4">
         <Header sessionName={sessionName} programName={programName} />
         <View className="mt-3 flex-row items-center gap-2">
-          <Ionicons name="play-skip-forward-circle-outline" size={18} color={COLORS.textMuted} />
-          <Text className="font-display text-sm uppercase text-textMuted">Séance sautée</Text>
+          <Ionicons name="play-skip-forward-circle-outline" size={18} color={COLORS.sunsetOrange} />
+          <Text className="font-display text-sm uppercase" style={{ color: COLORS.sunsetOrange }}>
+            Séance sautée
+          </Text>
         </View>
       </View>
     );
