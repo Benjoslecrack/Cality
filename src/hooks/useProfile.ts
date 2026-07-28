@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import type { SkillKey } from '../types/database';
+import type { Database } from '../types/database';
 import { useAuth } from '../contexts/AuthContext';
+
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
 export function useProfile() {
   const { session } = useAuth();
@@ -28,7 +30,7 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updates: { username?: string; goals?: SkillKey[] }) => {
+    mutationFn: async (updates: ProfileUpdate) => {
       const { error } = await supabase.from('profiles').update(updates).eq('id', userId!);
       if (error) throw error;
     },

@@ -2,6 +2,7 @@ import { ActivityIndicator, Alert, Pressable, SectionList, Text, View } from 're
 import { useCreateCalendarEntry } from '../../hooks/useCalendarEntries';
 import { useProgramsWithSessionsQuery } from '../../hooks/useProgramsWithSessions';
 import { formatDayLabel } from '../../lib/dateUtils';
+import { promptForNotificationPermissionIfRelevant } from '../../lib/notifications';
 import { COLORS } from '../../theme/tokens';
 
 type Props = {
@@ -18,7 +19,12 @@ export function SessionPickerScreen({ navigation, route }: Props) {
     createEntry.mutate(
       { programSessionId, scheduledDate: dateKey },
       {
-        onSuccess: () => navigation.goBack(),
+        onSuccess: () => {
+          // Moment pertinent pour proposer les notifications : la valeur d'un
+          // rappel de séance devient évidente dès qu'une première séance est planifiée.
+          promptForNotificationPermissionIfRelevant();
+          navigation.goBack();
+        },
         onError: (error) => Alert.alert('Erreur', (error as Error).message),
       }
     );

@@ -35,6 +35,13 @@
           "cameraPermission": "Cality a besoin d'accéder à l'appareil photo pour prendre une photo de progression.",
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#FF2E92"
+        }
       ]
     ],
     "extra": {

@@ -18,6 +18,11 @@ export interface Database {
           id: string;
           username: string | null;
           goals: SkillKey[];
+          notify_session_reminder: boolean;
+          notify_streak: boolean;
+          notify_milestone: boolean;
+          session_reminder_hour: number;
+          session_reminder_minute: number;
           created_at: string;
           updated_at: string;
         };
@@ -25,10 +30,20 @@ export interface Database {
           id: string;
           username?: string | null;
           goals?: SkillKey[];
+          notify_session_reminder?: boolean;
+          notify_streak?: boolean;
+          notify_milestone?: boolean;
+          session_reminder_hour?: number;
+          session_reminder_minute?: number;
         };
         Update: {
           username?: string | null;
           goals?: SkillKey[];
+          notify_session_reminder?: boolean;
+          notify_streak?: boolean;
+          notify_milestone?: boolean;
+          session_reminder_hour?: number;
+          session_reminder_minute?: number;
         };
         Relationships: [];
       };

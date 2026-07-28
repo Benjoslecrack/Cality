@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { useCreateProgram, useUpdateProgram } from '../../hooks/usePrograms';
+import { promptForNotificationPermissionIfRelevant } from '../../lib/notifications';
 import type { ProgramsStackParamList } from '../../navigation/ProgramsStack';
 
 type Props = NativeStackScreenProps<ProgramsStackParamList, 'ProgramForm'>;
@@ -29,6 +30,9 @@ export function ProgramFormScreen({ navigation, route }: Props) {
         await updateProgram.mutateAsync({ id: programId, name: name.trim(), description: description.trim() || null });
       } else {
         await createProgram.mutateAsync({ name: name.trim(), description: description.trim() || null });
+        // Moment pertinent pour proposer les notifications : la valeur d'un
+        // rappel de séance devient évidente dès qu'on a un premier programme.
+        promptForNotificationPermissionIfRelevant();
       }
       navigation.goBack();
     } catch (error) {
