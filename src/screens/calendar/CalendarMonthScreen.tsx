@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SessionPreviewCard } from '../../components/SessionPreviewCard';
 import { useCalendarEntriesRangeQuery, useDayEntriesQuery } from '../../hooks/useCalendarEntries';
@@ -60,16 +62,39 @@ export function CalendarMonthScreen({ navigation }: Props) {
     return map;
   }, [entries, freeLogs]);
 
+  const goToPreviousMonth = useCallback(() => setVisibleMonth((month) => addMonths(month, -1)), []);
+  const goToNextMonth = useCallback(() => setVisibleMonth((month) => addMonths(month, 1)), []);
+
+  // Geste zoné : seule la grille des jours (pas le header, pas la prévisu en
+  // dessous) réagit au swipe horizontal pour changer de mois. En dehors de
+  // cette zone, le swipe tombe normalement sur le pager de navigation par
+  // onglets (cf. MainTabs). activeOffsetX/failOffsetY laissent passer un
+  // simple tap (Pressable des jours) et le scroll vertical du ScrollView.
+  const monthSwipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-20, 20])
+        .failOffsetY([-15, 15])
+        .onEnd((event) => {
+          if (event.translationX <= -60) {
+            runOnJS(goToNextMonth)();
+          } else if (event.translationX >= 60) {
+            runOnJS(goToPreviousMonth)();
+          }
+        }),
+    [goToNextMonth, goToPreviousMonth]
+  );
+
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-4 pb-8 pt-4">
       <View className="mb-4 flex-row items-center justify-between px-2">
-        <Pressable onPress={() => setVisibleMonth((month) => addMonths(month, -1))} hitSlop={8}>
+        <Pressable onPress={goToPreviousMonth} hitSlop={8}>
           <Ionicons name="chevron-back" size={24} color={COLORS.textPrimary} />
         </Pressable>
         <Pressable onPress={() => setVisibleMonth(new Date())}>
           <Text className="font-display text-xl capitalize text-text">{monthLabel(visibleMonth)}</Text>
         </Pressable>
-        <Pressable onPress={() => setVisibleMonth((month) => addMonths(month, 1))} hitSlop={8}>
+        <Pressable onPress={goToNextMonth} hitSlop={8}>
           <Ionicons name="chevron-forward" size={24} color={COLORS.textPrimary} />
         </Pressable>
       </View>
@@ -82,45 +107,47 @@ export function CalendarMonthScreen({ navigation }: Props) {
         ))}
       </View>
 
-      <View className="flex-row flex-wrap">
-        {grid.map(({ date, inMonth }) => {
-          const dateKey = toDateKey(date);
-          const isToday = isSameDay(date, today);
-          const isSelected = dateKey === selectedDateKey;
-          const dotStatus = statusByDate.get(dateKey);
+      <GestureDetector gesture={monthSwipeGesture}>
+        <View className="flex-row flex-wrap">
+          {grid.map(({ date, inMonth }) => {
+            const dateKey = toDateKey(date);
+            const isToday = isSameDay(date, today);
+            const isSelected = dateKey === selectedDateKey;
+            const dotStatus = statusByDate.get(dateKey);
 
-          return (
-            <Pressable
-              key={dateKey}
-              onPress={() => setSelectedDateKey(dateKey)}
-              className="aspect-square w-[14.28%] items-center justify-center"
-            >
-              <View
-                className={`h-10 w-10 items-center justify-center ${
-                  isToday
-                    ? 'border-2 border-accentDim bg-primary'
-                    : isSelected
-                      ? 'border-2 border-accentCyan'
-                      : ''
-                }`}
+            return (
+              <Pressable
+                key={dateKey}
+                onPress={() => setSelectedDateKey(dateKey)}
+                className="aspect-square w-[14.28%] items-center justify-center"
               >
-                <Text
-                  className={`font-mono text-sm ${inMonth ? 'text-text' : 'text-textMuted opacity-40'} ${
-                    isToday ? 'text-onAccent' : ''
+                <View
+                  className={`h-10 w-10 items-center justify-center ${
+                    isToday
+                      ? 'border-2 border-accentDim bg-primary'
+                      : isSelected
+                        ? 'border-2 border-accentCyan'
+                        : ''
                   }`}
                 >
-                  {date.getDate()}
-                </Text>
-              </View>
-              {dotStatus ? (
-                <View className="mt-1 h-1.5 w-1.5" style={{ backgroundColor: DOT_COLORS[dotStatus] }} />
-              ) : (
-                <View className="mt-1 h-1.5 w-1.5" />
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
+                  <Text
+                    className={`font-mono text-sm ${inMonth ? 'text-text' : 'text-textMuted opacity-40'} ${
+                      isToday ? 'text-onAccent' : ''
+                    }`}
+                  >
+                    {date.getDate()}
+                  </Text>
+                </View>
+                {dotStatus ? (
+                  <View className="mt-1 h-1.5 w-1.5" style={{ backgroundColor: DOT_COLORS[dotStatus] }} />
+                ) : (
+                  <View className="mt-1 h-1.5 w-1.5" />
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      </GestureDetector>
 
       <View className="mt-6">
         <Text className="mb-3 font-bodyMedium text-sm capitalize text-textMuted">

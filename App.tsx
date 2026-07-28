@@ -2,6 +2,7 @@ import './global.css';
 import 'react-native-url-polyfill/auto';
 import { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
@@ -46,32 +47,36 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <PersistQueryClientProvider
-        client={queryClient}
-        persistOptions={{
-          persister: queryCachePersister,
-          // Incrémenté pour purger un cache persisté corrompu : un Set
-          // (user_skill_selection) sérialisé en JSON par AsyncStorage
-          // redevient un objet vide {} à la réhydratation, cassant
-          // `.has()`. Ce buster force un cache neuf plutôt que de tenter
-          // de réhydrater l'ancien format.
-          buster: 'v4-skill-sublevels-1',
-        }}
-        onSuccess={() => {
-          // Rejoue les mutations mises en pause hors-ligne (créer un log,
-          // valider une série...) une fois le cache restauré et la session
-          // réseau prête.
-          queryClient.resumePausedMutations();
-        }}
-      >
-        <AuthProvider>
-          <RestTimerProvider>
-            <StatusBar style="light" />
-            <RootNavigator />
-          </RestTimerProvider>
-        </AuthProvider>
-      </PersistQueryClientProvider>
-    </SafeAreaProvider>
+    // Racine requise par react-native-gesture-handler (swipe entre onglets,
+    // swipe mois sur le calendrier) — doit englober toute la nav.
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{
+            persister: queryCachePersister,
+            // Incrémenté pour purger un cache persisté corrompu : un Set
+            // (user_skill_selection) sérialisé en JSON par AsyncStorage
+            // redevient un objet vide {} à la réhydratation, cassant
+            // `.has()`. Ce buster force un cache neuf plutôt que de tenter
+            // de réhydrater l'ancien format.
+            buster: 'v4-skill-sublevels-1',
+          }}
+          onSuccess={() => {
+            // Rejoue les mutations mises en pause hors-ligne (créer un log,
+            // valider une série...) une fois le cache restauré et la session
+            // réseau prête.
+            queryClient.resumePausedMutations();
+          }}
+        >
+          <AuthProvider>
+            <RestTimerProvider>
+              <StatusBar style="light" />
+              <RootNavigator />
+            </RestTimerProvider>
+          </AuthProvider>
+        </PersistQueryClientProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

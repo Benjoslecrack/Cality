@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { COLORS } from '../theme/tokens';
 import { CalendarStack } from './CalendarStack';
@@ -18,7 +19,10 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
-const Tab = createBottomTabNavigator<MainTabParamList>();
+// material-top-tabs (positionné en bas) plutôt que bottom-tabs : donne le
+// swipe horizontal entre onglets nativement (via react-native-pager-view),
+// en gardant le même rendu visuel qu'une tab bar classique.
+const Tab = createMaterialTopTabNavigator<MainTabParamList>();
 
 const ICONS: Record<keyof MainTabParamList, keyof typeof Ionicons.glyphMap> = {
   Today: 'today-outline',
@@ -28,29 +32,49 @@ const ICONS: Record<keyof MainTabParamList, keyof typeof Ionicons.glyphMap> = {
   Profile: 'person-outline',
 };
 
+const LABELS: Record<keyof MainTabParamList, string> = {
+  Today: "Aujourd'hui",
+  Calendar: 'Calendrier',
+  Programs: 'Programmes',
+  Skills: 'Skills',
+  Profile: 'Profil',
+};
+
 export function MainTabs() {
+  // material-top-tabs ne gère pas la zone de sécurité basse tout seul
+  // (contrairement à bottom-tabs) : à ajouter à la main.
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
+      tabBarPosition="bottom"
       screenOptions={({ route }) => ({
-        headerStyle: { backgroundColor: COLORS.bgNight },
-        headerTintColor: COLORS.textPrimary,
-        headerShadowVisible: false,
+        swipeEnabled: true,
+        tabBarShowIcon: true,
+        tabBarIndicatorStyle: { height: 0 },
+        tabBarActiveTintColor: COLORS.neonCyan,
+        tabBarInactiveTintColor: COLORS.textMuted,
         tabBarStyle: {
           backgroundColor: COLORS.bgSurface,
           borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          paddingBottom: insets.bottom,
+          height: 49 + insets.bottom,
         },
-        tabBarActiveTintColor: COLORS.neonCyan,
-        tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name={ICONS[route.name as keyof MainTabParamList]} color={color} size={size} />
+        tabBarItemStyle: { flexDirection: 'column' },
+        tabBarLabelStyle: { fontSize: 11, textTransform: 'none', margin: 0 },
+        tabBarIcon: ({ color }) => (
+          <Ionicons name={ICONS[route.name as keyof MainTabParamList]} color={color} size={22} />
         ),
+        tabBarLabel: LABELS[route.name as keyof MainTabParamList],
       })}
     >
-      <Tab.Screen name="Today" component={TodayStack} options={{ title: "Aujourd'hui", headerShown: false }} />
-      <Tab.Screen name="Calendar" component={CalendarStack} options={{ title: 'Calendrier', headerShown: false }} />
-      <Tab.Screen name="Programs" component={ProgramsStack} options={{ title: 'Programmes', headerShown: false }} />
-      <Tab.Screen name="Skills" component={SkillsStack} options={{ title: 'Skills', headerShown: false }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil', headerShown: false }} />
+      <Tab.Screen name="Today" component={TodayStack} />
+      <Tab.Screen name="Calendar" component={CalendarStack} />
+      <Tab.Screen name="Programs" component={ProgramsStack} />
+      <Tab.Screen name="Skills" component={SkillsStack} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
