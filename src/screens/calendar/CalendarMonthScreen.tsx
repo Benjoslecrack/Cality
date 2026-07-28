@@ -6,6 +6,7 @@ import { runOnJS } from 'react-native-reanimated';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SessionPreviewCard } from '../../components/SessionPreviewCard';
 import { useCalendarEntriesRangeQuery, useDayEntriesQuery } from '../../hooks/useCalendarEntries';
+import { useMonthlyStreak } from '../../hooks/useMonthlyStreak';
 import { useFreeWorkoutLogsRangeQuery } from '../../hooks/useWorkoutLogs';
 import {
   addMonths,
@@ -44,6 +45,7 @@ export function CalendarMonthScreen({ navigation }: Props) {
   const { data: entries } = useCalendarEntriesRangeQuery(startKey, endKey);
   const { data: freeLogs } = useFreeWorkoutLogsRangeQuery(startKey, endKey);
   const { data: selectedDayEntries } = useDayEntriesQuery(selectedDateKey);
+  const streak = useMonthlyStreak();
 
   const statusByDate = useMemo(() => {
     const map = new Map<string, DotStatus>();
@@ -87,6 +89,22 @@ export function CalendarMonthScreen({ navigation }: Props) {
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-4 pb-8 pt-4">
+      {!streak.isLoading ? (
+        <View className="mb-4 items-center">
+          <Text
+            className="font-display text-sm uppercase"
+            style={{ color: streak.isActive ? COLORS.sunsetOrange : COLORS.textMuted }}
+          >
+            🔥 {streak.daysDoneThisMonth} jour{streak.daysDoneThisMonth > 1 ? 's' : ''} ce mois-ci
+          </Text>
+          {!streak.isActive ? (
+            <Text className="mt-0.5 font-body text-xs text-textMuted">
+              Streak en pause — une semaine complète sans séance
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
       <View className="mb-4 flex-row items-center justify-between px-2">
         <Pressable onPress={goToPreviousMonth} hitSlop={8}>
           <Ionicons name="chevron-back" size={24} color={COLORS.textPrimary} />
