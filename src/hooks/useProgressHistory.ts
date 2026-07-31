@@ -56,3 +56,29 @@ export function useAllExerciseLogsQuery(months = 3) {
     },
   });
 }
+
+// Toutes les séries loggées sur une année civile complète : sert le bilan
+// annuel (compteur global, répartition par exercice, heatmap). Une année de
+// données perso reste de l'ordre de quelques milliers de lignes — un fetch +
+// agrégation côté client (cf. src/lib/annualAggregate.ts), pas une vue
+// matérialisée, cf. discussion perf.
+export function useAnnualExerciseLogsQuery(year: number) {
+  const { session } = useAuth();
+  const userId = session?.user.id;
+
+  return useQuery({
+    queryKey: ['progress_history', 'annual', userId, year],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('exercise_logs')
+        .select('*, workout_logs!inner(performed_date)')
+        .eq('user_id', userId!)
+        .gte('workout_logs.performed_date', `${year}-01-01`)
+        .lte('workout_logs.performed_date', `${year}-12-31`)
+        .returns<ProgressLogEntry[]>();
+      if (error) throw error;
+      return data;
+    },
+  });
+}

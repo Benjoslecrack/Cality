@@ -107,11 +107,16 @@ export function ProfileScreen({ navigation }: Props) {
       </View>
 
       <Text className="mb-3 font-bodyMedium text-sm text-textMuted">Skills</Text>
-      <View className="mb-8">
+      <View className="mb-8 gap-3">
         <Button
           label="Sélectionner mes skills actifs"
           variant="secondary"
           onPress={() => navigation.navigate('Skills', { screen: 'SkillSelection' })}
+        />
+        <Button
+          label="Bilan de l'année"
+          variant="secondary"
+          onPress={() => navigation.navigate('Skills', { screen: 'AnnualStats' })}
         />
       </View>
 

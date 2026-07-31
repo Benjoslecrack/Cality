@@ -5,6 +5,7 @@ import { SkillDetailScreen } from '../screens/skills/SkillDetailScreen';
 import { SkillSelectionScreen } from '../screens/skills/SkillSelectionScreen';
 import { PhotoTimelineScreen } from '../screens/progress/PhotoTimelineScreen';
 import { AddProgressPhotoScreen } from '../screens/progress/AddProgressPhotoScreen';
+import { AnnualStatsScreen } from '../screens/progress/AnnualStatsScreen';
 
 export type SkillsStackParamList = {
   SkillsList: undefined;
@@ -12,6 +13,7 @@ export type SkillsStackParamList = {
   SkillSelection: undefined;
   PhotoTimeline: undefined;
   AddProgressPhoto: undefined;
+  AnnualStats: undefined;
 };
 
 const Stack = createNativeStackNavigator<SkillsStackParamList>();
@@ -39,6 +41,7 @@ export function SkillsStack() {
         component={AddProgressPhotoScreen}
         options={{ title: 'Ajouter une photo' }}
       />
+      <Stack.Screen name="AnnualStats" component={AnnualStatsScreen} options={{ title: "Bilan de l'année" }} />
     </Stack.Navigator>
   );
 }
