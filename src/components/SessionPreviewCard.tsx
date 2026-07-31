@@ -101,10 +101,10 @@ function DonePreview({
   const highlights = useDayHighlights(workoutLog ? exerciseLogs : undefined);
 
   const groups = useMemo(() => {
-    const byIdentity = new Map<string, { name: string; sets: ExerciseLogRow[] }>();
+    const byIdentity = new Map<string, { key: string; name: string; sets: ExerciseLogRow[] }>();
     for (const log of exerciseLogs ?? []) {
       const key = log.session_exercise_id ?? `name:${log.exercise_name}`;
-      if (!byIdentity.has(key)) byIdentity.set(key, { name: log.exercise_name, sets: [] });
+      if (!byIdentity.has(key)) byIdentity.set(key, { key, name: log.exercise_name, sets: [] });
       byIdentity.get(key)!.sets.push(log);
     }
     return [...byIdentity.values()];
@@ -123,7 +123,7 @@ function DonePreview({
       ) : (
         <View className="gap-2">
           {groups.map((group) => (
-            <View key={group.name} className="border-2 border-border bg-background px-3 py-2">
+            <View key={group.key} className="border-2 border-border bg-background px-3 py-2">
               <Text className="font-bodySemibold text-sm text-text">{group.name}</Text>
               <View className="mt-1 gap-0.5">
                 {group.sets.map((set) => {
