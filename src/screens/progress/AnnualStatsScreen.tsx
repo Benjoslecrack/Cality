@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { AnnualHeatmap } from '../../components/AnnualHeatmap';
+import { SessionPreviewCard } from '../../components/SessionPreviewCard';
 import { SimpleBarChart } from '../../components/SimpleBarChart';
+import { useDayEntriesQuery } from '../../hooks/useCalendarEntries';
 import { useAnnualExerciseLogsQuery } from '../../hooks/useProgressHistory';
-import { aggregateAnnualTotals, aggregateByExercise, formatDuration } from '../../lib/annualAggregate';
+import { aggregateAnnualTotals, aggregateByExercise, aggregateDailyReps, formatDuration } from '../../lib/annualAggregate';
+import { formatDayLabel } from '../../lib/dateUtils';
 import { CARD_SHADOW, COLORS } from '../../theme/tokens';
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -11,19 +15,35 @@ const CURRENT_YEAR = new Date().getFullYear();
 export function AnnualStatsScreen() {
   const [year, setYear] = useState(CURRENT_YEAR);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
+  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const { data: entries, isLoading } = useAnnualExerciseLogsQuery(year);
+  const { data: selectedDayEntries } = useDayEntriesQuery(selectedDateKey ?? '');
 
   const totals = useMemo(() => aggregateAnnualTotals(entries ?? []), [entries]);
   const breakdown = useMemo(() => aggregateByExercise(entries ?? []), [entries]);
+  const dailyReps = useMemo(() => aggregateDailyReps(entries ?? []), [entries]);
 
   return (
     <ScrollView className="flex-1 bg-background" contentContainerClassName="px-6 pb-12 pt-6">
       <View className="mb-6 flex-row items-center justify-center gap-4">
-        <Pressable onPress={() => setYear((y) => y - 1)} hitSlop={8}>
+        <Pressable
+          onPress={() => {
+            setYear((y) => y - 1);
+            setSelectedDateKey(null);
+          }}
+          hitSlop={8}
+        >
           <Ionicons name="chevron-back" size={22} color={COLORS.textPrimary} />
         </Pressable>
         <Text className="font-display text-xl text-text">{year}</Text>
-        <Pressable onPress={() => setYear((y) => y + 1)} hitSlop={8} disabled={year >= CURRENT_YEAR}>
+        <Pressable
+          onPress={() => {
+            setYear((y) => y + 1);
+            setSelectedDateKey(null);
+          }}
+          hitSlop={8}
+          disabled={year >= CURRENT_YEAR}
+        >
           <Ionicons name="chevron-forward" size={22} color={year >= CURRENT_YEAR ? COLORS.textMuted : COLORS.textPrimary} />
         </Pressable>
       </View>
@@ -86,6 +106,31 @@ export function AnnualStatsScreen() {
               })}
             </View>
           )}
+
+          <Text className="mb-3 mt-8 font-bodyMedium text-sm text-textMuted">Activité de l'année</Text>
+          <AnnualHeatmap
+            year={year}
+            dailyReps={dailyReps}
+            selectedDateKey={selectedDateKey}
+            onSelectDate={setSelectedDateKey}
+          />
+
+          {selectedDateKey ? (
+            <View className="mt-4">
+              <Text className="mb-3 font-bodyMedium text-sm capitalize text-textMuted">
+                {formatDayLabel(selectedDateKey)}
+              </Text>
+              {(selectedDayEntries ?? []).length === 0 ? (
+                <Text className="font-body text-sm text-textMuted">Rien de prévu ce jour.</Text>
+              ) : (
+                <View className="gap-3">
+                  {selectedDayEntries!.map((entry) => (
+                    <SessionPreviewCard key={entry.id} entry={entry} />
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : null}
         </>
       )}
     </ScrollView>
