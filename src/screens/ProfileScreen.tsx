@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useExportLogsCsv, useExportProgressPdf } from '../hooks/useDataExport';
 import { useNotificationPermission } from '../hooks/useNotificationPermission';
 import { useProfile, useUpdateProfile } from '../hooks/useProfile';
+import { reconcileAllSessionReminders } from '../lib/sessionReminders';
 import type { MainTabParamList } from '../navigation/MainTabs';
 import { COLORS } from '../theme/tokens';
 
@@ -41,8 +42,16 @@ export function ProfileScreen({ navigation }: Props) {
   const exportPdf = useExportProgressPdf();
 
   const permission = useNotificationPermission();
+  const userId = session?.user.id;
   const [username, setUsername] = useState('');
   const [showTimePicker, setShowTimePicker] = useState(false);
+
+  // Recalcule tous les rappels de séances programmées après un changement de
+  // réglage global (activé/désactivé, heure) — pas seulement au niveau d'une
+  // séance individuelle (déjà géré dans useCalendarEntries.ts).
+  const reconcileReminders = (enabled: boolean) => {
+    if (userId) reconcileAllSessionReminders(userId, enabled);
+  };
 
   useEffect(() => {
     if (profile) {
@@ -126,7 +135,12 @@ export function ProfileScreen({ navigation }: Props) {
             <ToggleRow
               label="Rappel de séance planifiée"
               value={profile.notify_session_reminder}
-              onChange={(value) => updateProfile.mutate({ notify_session_reminder: value })}
+              onChange={(value) =>
+                updateProfile.mutate(
+                  { notify_session_reminder: value },
+                  { onSuccess: () => reconcileReminders(value) }
+                )
+              }
             />
             <ToggleRow
               label="Streak en danger"
@@ -147,14 +161,24 @@ export function ProfileScreen({ navigation }: Props) {
                     <TimePresetButton
                       label="9h"
                       active={profile.session_reminder_hour === 9 && profile.session_reminder_minute === 0}
-                      onPress={() => updateProfile.mutate({ session_reminder_hour: 9, session_reminder_minute: 0 })}
+                      onPress={() =>
+                        updateProfile.mutate(
+                          { session_reminder_hour: 9, session_reminder_minute: 0 },
+                          { onSuccess: () => reconcileReminders(true) }
+                        )
+                      }
                     />
                   </View>
                   <View className="flex-1">
                     <TimePresetButton
                       label="18h"
                       active={profile.session_reminder_hour === 18 && profile.session_reminder_minute === 0}
-                      onPress={() => updateProfile.mutate({ session_reminder_hour: 18, session_reminder_minute: 0 })}
+                      onPress={() =>
+                        updateProfile.mutate(
+                          { session_reminder_hour: 18, session_reminder_minute: 0 },
+                          { onSuccess: () => reconcileReminders(true) }
+                        )
+                      }
                     />
                   </View>
                   <View className="flex-1">
@@ -182,10 +206,13 @@ export function ProfileScreen({ navigation }: Props) {
                     onChange={(event, selected) => {
                       setShowTimePicker(false);
                       if (event.type === 'set' && selected) {
-                        updateProfile.mutate({
-                          session_reminder_hour: selected.getHours(),
-                          session_reminder_minute: selected.getMinutes(),
-                        });
+                        updateProfile.mutate(
+                          {
+                            session_reminder_hour: selected.getHours(),
+                            session_reminder_minute: selected.getMinutes(),
+                          },
+                          { onSuccess: () => reconcileReminders(true) }
+                        );
                       }
                     }}
                   />

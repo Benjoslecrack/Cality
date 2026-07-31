@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { todayDateKey } from '../lib/dateUtils';
+import { cancelSessionReminder, scheduleSessionReminder } from '../lib/sessionReminders';
 import type { CalendarStatus, Database } from '../types/database';
 
 export type CalendarEntryWithSession = Database['public']['Tables']['calendar_entries']['Row'] & {
@@ -73,20 +74,35 @@ export function useCreateCalendarEntry() {
       programSessionId: string;
       scheduledDate: string;
     }) => {
-      const { error } = await supabase.from('calendar_entries').insert({
-        user_id: userId!,
-        program_session_id: programSessionId,
-        scheduled_date: scheduledDate,
-      });
+      const { data, error } = await supabase
+        .from('calendar_entries')
+        .insert({
+          user_id: userId!,
+          program_session_id: programSessionId,
+          scheduled_date: scheduledDate,
+        })
+        .select(ENTRY_SELECT)
+        .returns<CalendarEntryWithSession[]>()
+        .single();
       if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (entry) => {
       queryClient.invalidateQueries({ queryKey: ['calendar_entries'] });
+      if (userId) {
+        scheduleSessionReminder(userId, {
+          id: entry.id,
+          scheduled_date: entry.scheduled_date,
+          sessionName: entry.program_sessions?.name ?? 'Séance',
+        });
+      }
     },
   });
 }
 
 export function useUpdateCalendarEntryStatus() {
+  const { session } = useAuth();
+  const userId = session?.user.id;
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -112,6 +128,25 @@ export function useUpdateCalendarEntryStatus() {
         queryClient.setQueryData(queryKey, data);
       });
     },
+    // Fait/sautée : plus besoin de rappel. Replanifiée ('planned', via le
+    // bouton "Replanifier") : on en reprogramme un — no-op si la date est
+    // déjà passée (cf. scheduleLocalNotification). scheduled_date/le nom de
+    // la séance viennent de l'instantané optimiste, pas d'un fetch de plus.
+    onSuccess: (_data, { id, status }, context) => {
+      if (!userId) return;
+      if (status !== 'planned') {
+        cancelSessionReminder(id);
+        return;
+      }
+      const entry = context?.previousQueries.flatMap(([, data]) => data ?? []).find((e) => e.id === id);
+      if (entry) {
+        scheduleSessionReminder(userId, {
+          id: entry.id,
+          scheduled_date: entry.scheduled_date,
+          sessionName: entry.program_sessions?.name ?? 'Séance',
+        });
+      }
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar_entries'] });
     },
@@ -125,9 +160,11 @@ export function useDeleteCalendarEntry() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('calendar_entries').delete().eq('id', id);
       if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ['calendar_entries'] });
+      cancelSessionReminder(id);
     },
   });
 }
