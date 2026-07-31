@@ -1,17 +1,26 @@
-import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { Alert, Platform } from 'react-native';
 import { COLORS } from '../theme/tokens';
 
-// expo-notifications lève une erreur dure au tout premier appel d'API dans
-// Expo Go (pas seulement pour le push distant) depuis le SDK 53 — déjà
-// documenté dans RestTimerContext.tsx, qui évite le module pour cette même
-// raison. `appOwnership` (déprécié, mais seul champ à distinguer précisément
-// Expo Go d'un dev client) vaut 'expo' uniquement dans Expo Go ; un dev
-// client ou un build standalone vaut null et supporte le module normalement.
+// `appOwnership` (déprécié, mais seul champ à distinguer précisément Expo Go
+// d'un dev client) vaut 'expo' uniquement dans Expo Go ; un dev client ou un
+// build standalone vaut null et supporte expo-notifications normalement.
 export const isExpoGo = Constants.appOwnership === 'expo';
 
+// Le simple `import`/`require` statique d'expo-notifications suffit à faire
+// planter Expo Go depuis le SDK 53 ("Android Push notifications ... removed
+// from Expo Go"), avant même d'appeler une seule fonction du module — ce
+// n'est pas juste un appel d'API à éviter, c'est le chargement du module lui
+// même. On ne le require donc que si on n'est pas dans Expo Go, jamais de
+// `import` statique en haut de ce fichier.
+type NotificationsModule = typeof import('expo-notifications');
+let Notifications: NotificationsModule | null = null;
 if (!isExpoGo) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  Notifications = require('expo-notifications');
+}
+
+if (Notifications) {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
@@ -36,13 +45,13 @@ export type NotificationPermissionStatus = 'granted' | 'denied' | 'undetermined'
 // expo-notifications) pour Expo Go, où la fonctionnalité est indisponible
 // plutôt que refusée — distinction utile pour l'écran de réglages.
 export async function getNotificationPermissionStatus(): Promise<NotificationPermissionStatus> {
-  if (isExpoGo) return 'unsupported';
+  if (!Notifications) return 'unsupported';
   const { status } = await Notifications.getPermissionsAsync();
   return status;
 }
 
 export async function requestNotificationPermission(): Promise<boolean> {
-  if (isExpoGo) return false;
+  if (!Notifications) return false;
   const { status } = await Notifications.requestPermissionsAsync();
   return status === 'granted';
 }
@@ -61,7 +70,7 @@ type ScheduleOptions = {
 // jamais d'erreur remontée à l'appelant pour ce module, cohérent avec le
 // choix de ne jamais bloquer l'usage normal de l'app sans notifications.
 export async function scheduleLocalNotification({ id, title, body, date }: ScheduleOptions): Promise<void> {
-  if (isExpoGo) return;
+  if (!Notifications) return;
   const { status } = await Notifications.getPermissionsAsync();
   if (status !== 'granted') return;
   if (date.getTime() <= Date.now()) return; // une date déjà passée ne serait jamais délivrée
@@ -75,7 +84,7 @@ export async function scheduleLocalNotification({ id, title, body, date }: Sched
 }
 
 export async function cancelLocalNotification(id: string): Promise<void> {
-  if (isExpoGo) return;
+  if (!Notifications) return;
   await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
 }
 
@@ -88,7 +97,7 @@ export async function cancelLocalNotification(id: string): Promise<void> {
 // Ne fait rien si l'utilisateur a déjà répondu (accepté/refusé) ou dans
 // Expo Go.
 export function promptForNotificationPermissionIfRelevant(): void {
-  if (isExpoGo) return;
+  if (!Notifications) return;
   getNotificationPermissionStatus().then((status) => {
     if (status !== 'undetermined') return;
     Alert.alert(
@@ -103,7 +112,7 @@ export function promptForNotificationPermissionIfRelevant(): void {
 }
 
 export async function sendImmediateNotification({ title, body }: { title: string; body: string }): Promise<void> {
-  if (isExpoGo) return;
+  if (!Notifications) return;
   const { status } = await Notifications.getPermissionsAsync();
   if (status !== 'granted') return;
   await Notifications.scheduleNotificationAsync({
